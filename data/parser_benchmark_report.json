@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-10-08",
+  "total_tests": 25,
+  "passed": 24,
+  "failed": 1,
+  "accuracy_pct": 96.0,
+  "failures": [
+    {
+      "query": "Stroll to Oxford Bookstore at 5 pm, avoid direct afternoon sun.",
+      "errors": [
+        "Sun tolerance mismatch: got 'medium', expected 'low'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "oxford bookstore",
+        "depart_time": "17:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 2.8,
+        "parser_source": "offline_deterministic"
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+dist/
+build/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.env.local
+.env.*.local
+venv/
+.venv/
+env/
+
+# Data caches
+data/cache/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
