@@ -4,22 +4,22 @@ const API_BASE = '/api'
 
 export const api = {
   async getHealth() {
-    const res = await fetch(${API_BASE}/health)
+    const res = await fetch(`${API_BASE}/health`)
     return res.json()
   },
 
   async getPois(): Promise<POIsResponse> {
-    const res = await fetch(${API_BASE}/pois)
+    const res = await fetch(`${API_BASE}/pois`)
     return res.json()
   },
 
   async getShadows(time: string): Promise<ShadowResponse> {
-    const res = await fetch(${API_BASE}/shadows?time=)
+    const res = await fetch(`${API_BASE}/shadows?time=${encodeURIComponent(time)}`)
     return res.json()
   },
 
   async planRoute(req: RouteRequest): Promise<RouteResponse> {
-    const res = await fetch(${API_BASE}/route, {
+    const res = await fetch(`${API_BASE}/route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req)
@@ -29,13 +29,13 @@ export const api = {
   },
 
   async getBestWindow(date?: string): Promise<WindowResponse> {
-    const url = date ? ${API_BASE}/window?date= : ${API_BASE}/window
+    const url = date ? `${API_BASE}/window?date=${date}` : `${API_BASE}/window`
     const res = await fetch(url)
     return res.json()
   },
 
   async agentChat(req: ChatRequest): Promise<ChatResponse> {
-    const res = await fetch(${API_BASE}/agent/chat, {
+    const res = await fetch(`${API_BASE}/agent/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req)
@@ -45,7 +45,7 @@ export const api = {
   },
 
   async voiceBriefing(text: string): Promise<any> {
-    const res = await fetch(${API_BASE}/voice/briefing, {
+    const res = await fetch(`${API_BASE}/voice/briefing`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })

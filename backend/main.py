@@ -166,9 +166,21 @@ async def voice_briefing(req: VoiceRequest):
     return res
 
 
-# Mount static frontend if exists
-if os.path.exists("frontend/dist"):
-    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+from fastapi.responses import FileResponse
+
+# Mount data folder for GeoJSON assets
+if os.path.exists("data"):
+    app.mount("/static/data", StaticFiles(directory="data"), name="data")
+
+# Mount static web assets
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def serve_index():
+    if os.path.exists("static/index.html"):
+        return FileResponse("static/index.html")
+    return {"message": "Chhaya API active. Access /docs for API documentation."}
 
 if __name__ == "__main__":
     import uvicorn
