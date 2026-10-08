@@ -74,7 +74,8 @@ def get_shadows(time: str = Query("15:00", description="Time in HH:MM 24-hr form
     except:
         hr, mn = 15, 0
 
-    dt_ist = datetime.datetime(2026, 10, 8, hr, mn)
+    now = datetime.datetime.now()
+    dt_ist = now.replace(hour=hr, minute=mn, second=0, microsecond=0)
     engine = get_shadow_engine()
     geojson = engine.compute_shadows(dt_ist)
     return geojson
@@ -101,13 +102,14 @@ def calculate_route(req: RouteRequest):
 
 
 @app.get("/window")
-def get_best_window(date: str = Query("2026-10-08", description="Date YYYY-MM-DD")):
+def get_best_window(date: Optional[str] = Query(None, description="Date YYYY-MM-DD")):
     """
     Fulfills F6 (TabPFN partner category): predicts best 2-hour daylight walking window
     with MAE statistics compared against a 15-year climatology baseline.
     """
     model = get_window_model()
-    return model.get_best_windows(date)
+    target_date = date if date else datetime.datetime.now().strftime("%Y-%m-%d")
+    return model.get_best_windows(target_date)
 
 
 @app.post("/agent/chat")

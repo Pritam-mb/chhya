@@ -1,0 +1,848 @@
+{
+  "09:00": [
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 87.4,
+      "sun_minutes_saved": 4.2,
+      "trade_off": "Taking the shaded route is 87m longer (+1.7 mins) but saves 4.2 sun-minutes, providing 38% continuous shade instead of the exposed 10% on the direct avenue."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 87.4,
+      "sun_minutes_saved": 4.2,
+      "trade_off": "Taking the shaded route is 87m longer (+1.7 mins) but saves 4.2 sun-minutes, providing 38% continuous shade instead of the exposed 10% on the direct avenue."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 87.4,
+      "sun_minutes_saved": 4.2,
+      "trade_off": "Taking the shaded route is 87m longer (+1.7 mins) but saves 4.2 sun-minutes, providing 38% continuous shade instead of the exposed 10% on the direct avenue."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Park Clinic",
+      "extra_distance_m": 87.4,
+      "sun_minutes_saved": 4.2,
+      "trade_off": "Taking the shaded route is 87m longer (+1.7 mins) but saves 4.2 sun-minutes, providing 38% continuous shade instead of the exposed 10% on the direct avenue."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 202.7,
+      "sun_minutes_saved": 3.8,
+      "trade_off": "Taking the shaded route is 202m longer (+4.0 mins) but saves 3.8 sun-minutes, providing 48% continuous shade instead of the exposed 23% on the direct avenue."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 202.7,
+      "sun_minutes_saved": 3.8,
+      "trade_off": "Taking the shaded route is 202m longer (+4.0 mins) but saves 3.8 sun-minutes, providing 48% continuous shade instead of the exposed 23% on the direct avenue."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 202.7,
+      "sun_minutes_saved": 3.8,
+      "trade_off": "Taking the shaded route is 202m longer (+4.0 mins) but saves 3.8 sun-minutes, providing 48% continuous shade instead of the exposed 23% on the direct avenue."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Park Clinic",
+      "extra_distance_m": 202.7,
+      "sun_minutes_saved": 3.8,
+      "trade_off": "Taking the shaded route is 202m longer (+4.0 mins) but saves 3.8 sun-minutes, providing 48% continuous shade instead of the exposed 23% on the direct avenue."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 66.1,
+      "sun_minutes_saved": 3.1,
+      "trade_off": "Taking the shaded route is 66m longer (+1.3 mins) but saves 3.1 sun-minutes, providing 46% continuous shade instead of the exposed 15% on the direct avenue."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 66.1,
+      "sun_minutes_saved": 3.1,
+      "trade_off": "Taking the shaded route is 66m longer (+1.3 mins) but saves 3.1 sun-minutes, providing 46% continuous shade instead of the exposed 15% on the direct avenue."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 181.5,
+      "sun_minutes_saved": 2.7,
+      "trade_off": "Taking the shaded route is 181m longer (+3.6 mins) but saves 2.7 sun-minutes, providing 57% continuous shade instead of the exposed 31% on the direct avenue."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 181.5,
+      "sun_minutes_saved": 2.7,
+      "trade_off": "Taking the shaded route is 181m longer (+3.6 mins) but saves 2.7 sun-minutes, providing 57% continuous shade instead of the exposed 31% on the direct avenue."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 71.2,
+      "sun_minutes_saved": 2.1,
+      "trade_off": "Taking the shaded route is 71m longer (+1.4 mins) but saves 2.1 sun-minutes, providing 35% continuous shade instead of the exposed 19% on the direct avenue."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Park Clinic",
+      "extra_distance_m": 71.2,
+      "sun_minutes_saved": 2.1,
+      "trade_off": "Taking the shaded route is 71m longer (+1.4 mins) but saves 2.1 sun-minutes, providing 35% continuous shade instead of the exposed 19% on the direct avenue."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 71.2,
+      "sun_minutes_saved": 2.1,
+      "trade_off": "Taking the shaded route is 71m longer (+1.4 mins) but saves 2.1 sun-minutes, providing 35% continuous shade instead of the exposed 19% on the direct avenue."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 71.2,
+      "sun_minutes_saved": 2.1,
+      "trade_off": "Taking the shaded route is 71m longer (+1.4 mins) but saves 2.1 sun-minutes, providing 35% continuous shade instead of the exposed 19% on the direct avenue."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 79.5,
+      "sun_minutes_saved": 2.0,
+      "trade_off": "Taking the shaded route is 79m longer (+1.6 mins) but saves 2.0 sun-minutes, providing 28% continuous shade instead of the exposed 11% on the direct avenue."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 79.5,
+      "sun_minutes_saved": 2.0,
+      "trade_off": "Taking the shaded route is 79m longer (+1.6 mins) but saves 2.0 sun-minutes, providing 28% continuous shade instead of the exposed 11% on the direct avenue."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 79.5,
+      "sun_minutes_saved": 2.0,
+      "trade_off": "Taking the shaded route is 79m longer (+1.6 mins) but saves 2.0 sun-minutes, providing 28% continuous shade instead of the exposed 11% on the direct avenue."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Park Clinic",
+      "extra_distance_m": 79.5,
+      "sun_minutes_saved": 2.0,
+      "trade_off": "Taking the shaded route is 79m longer (+1.6 mins) but saves 2.0 sun-minutes, providing 28% continuous shade instead of the exposed 11% on the direct avenue."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 1.8,
+      "sun_minutes_saved": 1.6,
+      "trade_off": "Taking the shaded route is 1m longer (+0.0 mins) but saves 1.6 sun-minutes, providing 65% continuous shade instead of the exposed 31% on the direct avenue."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 1.8,
+      "sun_minutes_saved": 1.6,
+      "trade_off": "Taking the shaded route is 1m longer (+0.0 mins) but saves 1.6 sun-minutes, providing 65% continuous shade instead of the exposed 31% on the direct avenue."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 117.2,
+      "sun_minutes_saved": 1.2,
+      "trade_off": "Taking the shaded route is 117m longer (+2.3 mins) but saves 1.2 sun-minutes, providing 72% continuous shade instead of the exposed 51% on the direct avenue."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 117.2,
+      "sun_minutes_saved": 1.2,
+      "trade_off": "Taking the shaded route is 117m longer (+2.3 mins) but saves 1.2 sun-minutes, providing 72% continuous shade instead of the exposed 51% on the direct avenue."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 49.9,
+      "sun_minutes_saved": 1.1,
+      "trade_off": "Taking the shaded route is 49m longer (+1.0 mins) but saves 1.1 sun-minutes, providing 42% continuous shade instead of the exposed 28% on the direct avenue."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 49.9,
+      "sun_minutes_saved": 1.1,
+      "trade_off": "Taking the shaded route is 49m longer (+1.0 mins) but saves 1.1 sun-minutes, providing 42% continuous shade instead of the exposed 28% on the direct avenue."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 47.4,
+      "sun_minutes_saved": 1.0,
+      "trade_off": "Taking the shaded route is 47m longer (+0.9 mins) but saves 1.0 sun-minutes, providing 76% continuous shade instead of the exposed 56% on the direct avenue."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 47.4,
+      "sun_minutes_saved": 1.0,
+      "trade_off": "Taking the shaded route is 47m longer (+0.9 mins) but saves 1.0 sun-minutes, providing 76% continuous shade instead of the exposed 56% on the direct avenue."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 58.2,
+      "sun_minutes_saved": 0.9,
+      "trade_off": "Taking the shaded route is 58m longer (+1.1 mins) but saves 0.9 sun-minutes, providing 32% continuous shade instead of the exposed 16% on the direct avenue."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 58.2,
+      "sun_minutes_saved": 0.9,
+      "trade_off": "Taking the shaded route is 58m longer (+1.1 mins) but saves 0.9 sun-minutes, providing 32% continuous shade instead of the exposed 16% on the direct avenue."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 36.8,
+      "sun_minutes_saved": 0.2,
+      "trade_off": "The direct path is already well shaded (30% shade); the shade route matches the shortest path with 11.2 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 36.8,
+      "sun_minutes_saved": 0.2,
+      "trade_off": "The direct path is already well shaded (30% shade); the shade route matches the shortest path with 11.2 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 36.8,
+      "sun_minutes_saved": 0.2,
+      "trade_off": "The direct path is already well shaded (30% shade); the shade route matches the shortest path with 11.2 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Park Clinic",
+      "extra_distance_m": 36.8,
+      "sun_minutes_saved": 0.2,
+      "trade_off": "The direct path is already well shaded (30% shade); the shade route matches the shortest path with 11.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (38% shade); the shade route matches the shortest path with 2.4 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (38% shade); the shade route matches the shortest path with 2.4 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (2% shade); the shade route matches the shortest path with 0.9 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (60% shade); the shade route matches the shortest path with 2.2 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (2% shade); the shade route matches the shortest path with 0.9 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (60% shade); the shade route matches the shortest path with 2.2 sun-minutes."
+    }
+  ],
+  "15:00": [
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (82% shade); the shade route matches the shortest path with 1.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (83% shade); the shade route matches the shortest path with 1.1 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (82% shade); the shade route matches the shortest path with 3.2 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (82% shade); the shade route matches the shortest path with 1.1 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (83% shade); the shade route matches the shortest path with 1.1 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.4,
+      "trade_off": "The direct path is already well shaded (82% shade); the shade route matches the shortest path with 3.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (87% shade); the shade route matches the shortest path with 1.4 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (74% shade); the shade route matches the shortest path with 6.3 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (74% shade); the shade route matches the shortest path with 6.3 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (87% shade); the shade route matches the shortest path with 1.4 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (74% shade); the shade route matches the shortest path with 6.3 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Park Clinic",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.3,
+      "trade_off": "The direct path is already well shaded (74% shade); the shade route matches the shortest path with 6.3 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.4 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.4 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (94% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (95% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (80% shade); the shade route matches the shortest path with 2.3 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.4 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (73% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (61% shade); the shade route matches the shortest path with 6.0 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.4 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (73% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (61% shade); the shade route matches the shortest path with 6.0 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (94% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (72% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (81% shade); the shade route matches the shortest path with 2.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (95% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (73% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (73% shade); the shade route matches the shortest path with 5.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (83% shade); the shade route matches the shortest path with 2.1 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (80% shade); the shade route matches the shortest path with 2.3 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (61% shade); the shade route matches the shortest path with 6.0 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (61% shade); the shade route matches the shortest path with 6.0 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (81% shade); the shade route matches the shortest path with 2.1 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (83% shade); the shade route matches the shortest path with 2.1 sun-minutes."
+    }
+  ],
+  "16:00": [
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (93% shade); the shade route matches the shortest path with 0.7 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (92% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (93% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Russell Street Market & Pharmacy",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (97% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (93% shade); the shade route matches the shortest path with 0.7 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Park Clinic",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (92% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 34.4,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (93% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Russell Street Market & Pharmacy",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 34.5,
+      "sun_minutes_saved": 0.5,
+      "trade_off": "The direct path is already well shaded (97% shade); the shade route matches the shortest path with 0.5 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.3 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.3 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (94% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (95% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Dadu's Residence (Middleton Row)",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.3 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Belle Vue Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.3 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Park Clinic",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (94% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Flurys Tea Room",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (95% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Oxford Bookstore",
+      "destination": "Camac Street Mall & Offices",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Dadu's Residence (Middleton Row)",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (98% shade); the shade route matches the shortest path with 0.2 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Belle Vue Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Park Clinic",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.1 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Flurys Tea Room",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    },
+    {
+      "origin": "Camac Street Mall & Offices",
+      "destination": "Oxford Bookstore",
+      "extra_distance_m": 0.0,
+      "sun_minutes_saved": 0.0,
+      "trade_off": "The direct path is already well shaded (100% shade); the shade route matches the shortest path with 0.0 sun-minutes."
+    }
+  ]
+}

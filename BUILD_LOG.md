@@ -155,8 +155,21 @@ To enable live cloud LLM reasoning and ElevenLabs voice audio, place these keys 
 Start the backend and UI with a single command:
 
 ```powershell
+pip install -r requirements.txt
 python backend/main.py
 ```
 
 Open your browser at:
 `http://localhost:8000`
+
+---
+
+## 13. Workstreams 1 & 2 Execution Log
+
+**What changed & Decisions Made:**
+- **OSM POIs (WS1)**: Instead of the 7 hardcoded POIs, I extracted real clinics, pharmacies, cafes, etc. from `osm_raw.json`. Dadu's residence remains an illustrative POI. 
+- **Testing Scale Issue (WS2)**: When running `search_demo_trips.py` for all POI pairs, the script hung because `compute_edge_exposure` (Shapely intersection) takes ~1 second per call, and it was being called inside a loop over thousands of pairs.
+- **Fix**: Implemented a caching mechanism (`_exposure_cache`) in `plan_route()` so that the exposure map for a given `dt_ist` is only computed once.
+- **Topological Errors (WS2)**: Replaced the bare `except Exception:` in `compute_edge_exposure` with `shapely.errors.TopologicalError` to avoid suppressing unrelated bugs while catching valid geometric failures.
+- **Tests (WS2)**: Upgraded all testing scripts to use `pytest` assertions. Discovered exactly 40 diverging shade routes at 3:00 PM, and selected the Belle Vue Clinic -> Oxford Bookstore route as the primary demo trip.
+- **Cleanup**: Purged the unused scaffolding in `frontend/` to strictly favor the active `static/` directory. Added `requirements.txt` to streamline local setup.

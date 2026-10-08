@@ -29,6 +29,11 @@ class RoutingEngine:
         self.nodes = data.get("nodes", {})
         self.edges = data.get("edges", [])
         
+        for nid, ninfo in self.nodes.items():
+            ux, uy = to_utm(ninfo["lon"], ninfo["lat"])
+            ninfo["utm_x"] = ux
+            ninfo["utm_y"] = uy
+        
         # Build bidirectional adjacency list for walking
         self.adjacency = {nid: [] for nid in self.nodes}
         
@@ -91,8 +96,7 @@ class RoutingEngine:
         min_dist = float("inf")
         
         for nid, ninfo in self.nodes.items():
-            nx, ny = to_utm(ninfo["lon"], ninfo["lat"])
-            d = math.hypot(nx - ux, ny - uy)
+            d = math.hypot(ninfo["utm_x"] - ux, ninfo["utm_y"] - uy)
             if d < min_dist:
                 min_dist = d
                 best_nid = nid
@@ -139,6 +143,7 @@ class RoutingEngine:
                 exposure_map[e["edge_id"]] = 1.0
                 continue
                 
+            import shapely.errors
             try:
                 if merged_shadows.intersects(line):
                     inter = merged_shadows.intersection(line)
@@ -148,7 +153,8 @@ class RoutingEngine:
                     exposure_map[e["edge_id"]] = max(0.0, min(1.0, sunlit_fraction))
                 else:
                     exposure_map[e["edge_id"]] = 1.0
-            except Exception:
+            except shapely.errors.TopologicalError as err:
+                print(f"TopologicalError during intersection: {err}")
                 exposure_map[e["edge_id"]] = 1.0
                 
         return exposure_map
@@ -252,8 +258,8 @@ class RoutingEngine:
             minute = int(parts[1]) if len(parts) > 1 else 0
         except:
             hour, minute = 15, 0
-            
-        dt_ist = datetime.datetime(2026, 10, 8, hour, minute)
+        now = datetime.datetime.now()
+        dt_ist = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
         
         # Determine sun penalty k
         tol_lower = sun_tolerance.lower().strip()
@@ -264,8 +270,15 @@ class RoutingEngine:
         else:
             k_penalty = 0.6  # High tolerance (slight preference for shade)
             
-        # Compute edge exposure for this time slot
-        exposure_map = self.compute_edge_exposure(dt_ist)
+        # Compute edge exposure for this time slot (with caching for performance)
+        if hasattr(self, "_exposure_cache") and dt_ist.strftime("%Y-%m-%d %H:%M") in self._exposure_cache:
+            exposure_map = self._exposure_cache[dt_ist.strftime("%Y-%m-%d %H:%M")]
+        else:
+            exposure_map = self.compute_edge_exposure(dt_ist)
+            if not hasattr(self, "_exposure_cache"):
+                self._exposure_cache = {}
+            self._exposure_cache[dt_ist.strftime("%Y-%m-%d %H:%M")] = exposure_map
+
         
         # 1. Shortest Path (k = 0)
         shortest_segments = self._dijkstra(start_nid, end_nid, exposure_map, k_penalty=0.0)
@@ -323,7 +336,7 @@ class RoutingEngine:
         is_high_noon = (elev > 55.0)
         noon_note = ""
         if is_high_noon:
-            noon_note = " Honest note: The sun is overhead (60° elevation), so building shadows are narrow (0.5x height); leaving before 10 AM or after 2:30 PM offers far more shade."
+            noon_note = f" Honest note: The sun is overhead ({elev:.1f}° elevation), so building shadows are narrow (0.5x height); leaving before 10 AM or after 2:30 PM offers far more shade."
             
         if sun_mins_saved > 0.5:
             trade_off_sentence = (

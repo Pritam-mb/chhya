@@ -108,8 +108,7 @@ HANDWRITTEN_TEST_SET = [
     }
 ]
 
-def run_benchmark():
-    print(f"=== Evaluating Parser Benchmark ({len(HANDWRITTEN_TEST_SET)} Test Requests) ===")
+def test_parser_accuracy():
     passed = 0
     failures = []
     
@@ -131,17 +130,10 @@ def run_benchmark():
             
         if not errors:
             passed += 1
-            print(f"[{idx:02d}] PASS: \"{q[:48]}...\" -> {res['origin']} -> {res['destination']} @ {res['depart_time']} ({res['sun_tolerance']} sun, {res['speed_kmh']} km/h)")
         else:
             failures.append({"query": q, "errors": errors, "parsed": res})
-            print(f"[{idx:02d}] FAIL: \"{q[:48]}...\" -> {errors}")
             
-    accuracy = (passed / len(HANDWRITTEN_TEST_SET)) * 100.0
-    print("\n" + "="*50)
-    print(f"Total Requests: {len(HANDWRITTEN_TEST_SET)}")
-    print(f"Passed:         {passed} ({accuracy:.1f}%)")
-    print(f"Failures:       {len(failures)}")
-    print("="*50)
+    accuracy = (passed / len(HANDWRITTEN_TEST_SET))
     
     # Save benchmark report for submission documentation and README
     report = {
@@ -149,12 +141,13 @@ def run_benchmark():
         "total_tests": len(HANDWRITTEN_TEST_SET),
         "passed": passed,
         "failed": len(failures),
-        "accuracy_pct": round(accuracy, 1),
+        "accuracy_pct": round(accuracy * 100, 1),
         "failures": failures
     }
+    
+    os.makedirs("data", exist_ok=True)
     with open("data/parser_benchmark_report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
-    print("Saved benchmark report to data/parser_benchmark_report.json")
+        
+    assert accuracy >= 0.90, f"Parser accuracy {accuracy * 100}% is below 90% threshold"
 
-if __name__ == "__main__":
-    run_benchmark()

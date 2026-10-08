@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+shapely
+pyproj
+tabpfn
+pandas
+numpy
+requests
+httpx
+pytest

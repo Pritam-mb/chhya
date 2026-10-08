@@ -145,8 +145,7 @@ def process_osm(raw_path="data/osm_raw.json"):
 
     print(f"Extracted {len(street_edges)} street segments across {len(graph_nodes)} intersection nodes.")
 
-    # 3. Create Key Points of Interest for Park Street & Camac Street demo
-    # We define well-known landmarks in this bounding box:
+    # 3. Create Key Points of Interest dynamically from OSM tags
     pois = [
         {
             "id": "poi_dadu_home",
@@ -155,63 +154,39 @@ def process_osm(raw_path="data/osm_raw.json"):
             "address": "7 Middleton Row, near Loreto House",
             "lat": 22.5512,
             "lon": 88.3524,
-            "aliases": ["home", "dadu's home", "house", "middleton row residence"]
-        },
-        {
-            "id": "poi_clinic_bellevue",
-            "name": "Belle Vue Clinic",
-            "category": "clinic",
-            "address": "9 Dr. U. N. Brahmachari St / Loudon St",
-            "lat": 22.5482,
-            "lon": 88.3562,
-            "aliases": ["the clinic", "clinic", "belle vue", "belle vue clinic", "doctor", "hospital"]
-        },
-        {
-            "id": "poi_clinic_park",
-            "name": "Park Clinic",
-            "category": "clinic",
-            "address": "4 Gorky Terrace",
-            "lat": 22.5476,
-            "lon": 88.3528,
-            "aliases": ["park clinic", "gorky terrace clinic"]
-        },
-        {
-            "id": "poi_flurys",
-            "name": "Flurys Tea Room",
-            "category": "landmark",
-            "address": "18 Park Street",
-            "lat": 22.5532,
-            "lon": 88.3526,
-            "aliases": ["flurys", "tea room", "park street tearoom"]
-        },
-        {
-            "id": "poi_oxford",
-            "name": "Oxford Bookstore",
-            "category": "shop",
-            "address": "17 Park Street",
-            "lat": 22.5535,
-            "lon": 88.3521,
-            "aliases": ["oxford bookstore", "bookstore", "books"]
-        },
-        {
-            "id": "poi_camac_square",
-            "name": "Camac Street Mall & Offices",
-            "category": "commercial",
-            "address": "22 Camac Street",
-            "lat": 22.5492,
-            "lon": 88.3538,
-            "aliases": ["camac street", "camac square", "offices"]
-        },
-        {
-            "id": "poi_russell_market",
-            "name": "Russell Street Market & Pharmacy",
-            "category": "pharmacy",
-            "address": "12 Russell Street",
-            "lat": 22.5521,
-            "lon": 88.3508,
-            "aliases": ["russell street", "pharmacy", "market", "russell pharmacy"]
+            "aliases": ["home", "dadu's home", "house", "middleton row residence"],
+            "is_illustrative": True
         }
     ]
+
+    for el in elements:
+        tags = el.get("tags", {})
+        amenity = tags.get("amenity")
+        shop = tags.get("shop")
+        healthcare = tags.get("healthcare")
+        
+        category = amenity or shop or healthcare
+        if category and "name" in tags:
+            lat, lon = None, None
+            if el["type"] == "node":
+                lat, lon = el["lat"], el["lon"]
+            elif el["type"] == "way":
+                way_nodes = el.get("nodes", [])
+                valid_coords = [nodes[nid] for nid in way_nodes if nid in nodes]
+                if valid_coords:
+                    lon = sum(c[0] for c in valid_coords) / len(valid_coords)
+                    lat = sum(c[1] for c in valid_coords) / len(valid_coords)
+                    
+            if lat is not None and lon is not None:
+                name = tags["name"]
+                pois.append({
+                    "id": f"poi_{el['id']}",
+                    "name": name,
+                    "category": category,
+                    "lat": lat,
+                    "lon": lon,
+                    "aliases": [name.lower()]
+                })
 
     # Save outputs
     with open("data/buildings.geojson", "w", encoding="utf-8") as f:

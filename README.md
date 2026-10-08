@@ -35,6 +35,7 @@ Add your keys (the application runs 100% offline with zero keys if left blank):
 
 ### 3. Run the App
 ```powershell
+pip install -r requirements.txt
 python backend/main.py
 ```
 Open **[http://localhost:8000](http://localhost:8000)** in your browser.
@@ -46,7 +47,7 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 | Feature | Done Condition | Status |
 |---|---|---|
 | **Shadow Map (30-min slider)** | Building shadows sweep across Park St in 30-min steps from 6 AM to 6 PM with zero page reloads. | ✅ Verified |
-| **Shade-Aware Route** | Route differs from shortest path on test pairs and renders segments colored green (shaded) vs red (exposed). | ✅ Verified (12 diverging pairs) |
+| **Shade-Aware Route** | Route differs from shortest path on test pairs and renders segments colored green (shaded) vs red (exposed). | ✅ Verified (40 diverging pairs) |
 | **Sun-Minutes Counter** | Reproducible sun-minutes calculated for both shade route and shortest path ($\sum \ell_e s_e / v$). | ✅ Verified |
 | **Local / Offline Request Parser** | Hand-written test set of 25 requests evaluated: 96% accuracy (24/25 passed). Works 100% offline without internet. | ✅ Verified (`data/parser_benchmark_report.json`) |
 | **Agent End-to-End** | Natural language request becomes route on MapLibre map with 1-sentence trade-off explanation. | ✅ Verified |

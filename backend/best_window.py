@@ -171,11 +171,20 @@ class BestWindowModel:
         results.sort(key=lambda x: x["discomfort_score"], reverse=True)
         best = results[0]
         
+        try:
+            from backend.geo_shadows import calculate_solar_position
+            import datetime
+            dt = datetime.datetime.strptime(target_date_str, "%Y-%m-%d") if "-" in target_date_str else datetime.datetime.now()
+            noon_dt = dt.replace(hour=12, minute=0, second=0)
+            noon_elev = calculate_solar_position(noon_dt)["elevation"]
+        except Exception:
+            noon_elev = 60.0
+            
         return {
             "date": target_date_str,
             "best_window": best["time_window"],
             "best_window_label": best["label"],
-            "explanation": f"Best walking window today is {best['time_window']} ({best['shade_quality'].split('(')[0].strip()}). At 11:30 - 13:30, high solar elevation (60°) shrinks shadows to 0.5x height.",
+            "explanation": f"Best walking window today is {best['time_window']} ({best['shade_quality'].split('(')[0].strip()}). At 11:30 - 13:30, high solar elevation ({noon_elev:.1f}°) shrinks shadows.",
             "model_metrics": {
                 "model": "TabPFN Regressor vs 15-Year Climatology Baseline",
                 "tabpfn_mae": round(self.mae_tabpfn, 3),
