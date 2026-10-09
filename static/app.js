@@ -24,6 +24,20 @@ let landmarksVisible = true;
 let streetCorrections = {};
 let accuracyData = null;
 let currentSegments = [];
+// Hand-picked map points ("lat,lon" strings the router resolves), card place,
+// GPS tracking, and trip chat polling state.
+let pickedOrigin = null;
+let pickedDest = null;
+let cardPlace = null;
+let cardPhotoData = null;
+let gpsMarker = null;
+let gpsWatchId = null;
+let lastChatId = 0;
+let chatTimer = null;
+// Bengali/English UI toggle (locale file; dynamic route numbers stay as computed)
+let currentLang = "en";
+let LOCALES = {};
+try { currentLang = localStorage.getItem("chhaya-lang") || "en"; } catch (_) {}
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", async () => {
@@ -38,11 +52,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupModals();
   setupWalkActions();
   setupShadeTaps();
+  setupChat();
+  setupFeed();
+  startGroupPolling();
   setupRadarActions();
   setupQrActions();
   loadBestWindowWidget();
   loadPOIs();
   checkUrlRouteOnLoad();
+  loadLocale();
 
   // Trigger initial demo scenario after map renders
   setTimeout(() => {
@@ -93,6 +111,196 @@ function initMap() {
     addShadowsLayer();
     addRouteLayers();
     updateShadowsForTime("15:00");
+    setupMapPick();
+    setupLocate();
+  });
+}
+
+// Tap the map to pick a point: start here, end here, or leave a card here.
+// Picks outside the Park St pack snap to the nearest lane for routing;
+// cards and chat work at the exact tapped spot, map-wide.
+function setupMapPick() {
+  if (!map || map.__pickWired) return;
+  map.__pickWired = true;
+  map.on("click", (e) => {
+    if (e.originalEvent && e.originalEvent.target &&
+        e.originalEvent.target.closest(".maplibregl-marker, .maplibregl-popup, .maplibregl-ctrl")) return;
+    const lat = +e.lngLat.lat.toFixed(5), lon = +e.lngLat.lng.toFixed(5);
+    const label = `${lat}, ${lon}`;
+    const html = document.createElement("div");
+    html.innerHTML = `
+      <div class="popup-landmark-title">Pinned point</div>
+      <div class="popup-landmark-addr">${label} · snaps to nearest lane for routing</div>
+      <div class="popup-actions" style="flex-wrap:wrap;">
+        <button class="btn-popup" data-act="orig">Start here</button>
+        <button class="btn-popup" data-act="dest">End here</button>
+        <button class="btn-popup" data-act="card">Leave card</button>
+      </div>`;
+    const popup = new maplibregl.Popup({ offset: 14, closeButton: true })
+      .setLngLat(e.lngLat).setDOMContent(html).addTo(map);
+    html.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      const act = b.getAttribute("data-act");
+      const ll = `${lat},${lon}`;
+      if (act === "orig") { pickedOrigin = ll; startPickedRoute(); }
+      if (act === "dest") { pickedDest = ll; startPickedRoute(); }
+      if (act === "card") { openCardAt(lat, lon, label); }
+      popup.remove();
+    }));
+  });
+}
+
+function startPickedRoute() {
+  const oSel = document.getElementById("origin-select").value;
+  const dSel = document.getElementById("destination-select").value;
+  const orig = oSel || pickedOrigin, dest = dSel || pickedDest;
+  if (orig && dest && orig !== dest) {
+    loadDirectRoute(orig, dest, document.getElementById("time-display").textContent || "15:00");
+  }
+}
+
+function openCardAt(lat, lon, label) {
+  cardPlace = { lat, lon, label: label || `${lat}, ${lon}` };
+  const lbl = document.getElementById("card-coords-label");
+  if (lbl) lbl.textContent = cardPlace.label;
+  const modal = document.getElementById("radar-modal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    document.getElementById("radar-tab-leave")?.click();
+  }
+}
+
+// My-location dot + follow tracking (browser geolocation, opt-in per tap)
+function setupLocate() {
+  const btn = document.getElementById("locate-btn");
+  if (!btn || !("geolocation" in navigator)) {
+    if (btn) { btn.disabled = true; btn.title = "Geolocation not available"; }
+    return;
+  }
+  btn.addEventListener("click", () => {
+    if (gpsWatchId !== null) {
+      navigator.geolocation.clearWatch(gpsWatchId);
+      gpsWatchId = null;
+      btn.classList.remove("active");
+      btn.textContent = "◎ Locate";
+      return;
+    }
+    btn.textContent = "◎ Locating…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        showGps(pos.coords);
+        map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 16.5 });
+        gpsWatchId = navigator.geolocation.watchPosition(showGps, null,
+          { enableHighAccuracy: true, maximumAge: 10000 });
+        btn.classList.add("active");
+        btn.textContent = "◉ Tracking (tap to stop)";
+      },
+      () => { btn.textContent = "◎ Locate"; },
+      { enableHighAccuracy: true, timeout: 12000 }
+    );
+  });
+}
+
+function showGps(coords) {
+  const ll = [coords.longitude, coords.latitude];
+  if (!gpsMarker) {
+    const el = document.createElement("div");
+    el.className = "gps-dot";
+    el.title = "You are here";
+    gpsMarker = new maplibregl.Marker({ element: el }).setLngLat(ll).addTo(map);
+  } else {
+    gpsMarker.setLngLat(ll);
+  }
+  shareLiveSpot(coords.latitude, coords.longitude);
+}
+
+// Shares my spot with the group (only while GPS tracking is on = opt-in),
+// throttled to one post per 15 s.
+let lastSpotPost = 0;
+async function shareLiveSpot(lat, lon) {
+  const now = Date.now();
+  if (now - lastSpotPost < 15000) return;
+  lastSpotPost = now;
+  const walker = ((document.getElementById("walker-name-input")?.value) || "Walker").trim();
+  try {
+    await fetch(`/api/trip/${currentTripCode}/position`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ walker, lat, lon }),
+    });
+  } catch (_) {}
+}
+
+// Group dashboard: live member spots on the map + grass-points table.
+let memberMarkers = [];
+let groupTimer = null;
+function startGroupPolling() {
+  if (!groupTimer) {
+    groupTimer = setInterval(() => {
+      const modal = document.getElementById("walk-modal");
+      if (modal && !modal.classList.contains("hidden")) pollGroup(true);
+    }, 10000);
+  }
+}
+
+async function pollGroup(quiet) {
+  const box = document.getElementById("group-members");
+  const pts = document.getElementById("group-points");
+  try {
+    const [posRes, ptsRes] = await Promise.all([
+      fetch(`/api/trip/${currentTripCode}/positions`),
+      fetch(`/api/trip/${currentTripCode}/points`),
+    ]);
+    const members = (await posRes.json()).members || [];
+    const board = (await ptsRes.json()).leaderboard || [];
+    renderMemberMarkers(members);
+    if (box) {
+      box.innerHTML = members.length ? "" : `<p style="font-size:13px;">No live spots yet — members appear here when they tap ◎ Locate.</p>`;
+      const checkins = await getCheckinWalkers();
+      members.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "member-row";
+        const seen = m.stale ? "stale spot" : "live now";
+        const atStop = checkins[m.walker] ? ` · at Stop ${checkins[m.walker]}` : "";
+        row.innerHTML = `<strong>${m.walker}</strong><span style="font-family:var(--font-mono);font-size:11px;">${seen}${atStop}</span>`;
+        box.appendChild(row);
+      });
+    }
+    if (pts) {
+      pts.innerHTML = board.length ? "" : `<p style="font-size:13px;">No points yet — tap a checkpoint or unlock a story.</p>`;
+      board.forEach(b => {
+        const row = document.createElement("div");
+        row.className = "points-row";
+        row.innerHTML = `<span>🌱 ${b.walker}</span><strong>${b.points} pts · ${b.events} acts</strong>`;
+        pts.appendChild(row);
+      });
+    }
+  } catch (_) {
+    if (!quiet && box) box.innerHTML = `<p style="font-size:13px;">Dashboard offline.</p>`;
+  }
+}
+
+let checkinCache = {};
+async function getCheckinWalkers() {
+  try {
+    const res = await fetch(`/api/trip/${currentTripCode}`);
+    const data = await res.json();
+    const map = {};
+    (data.checkins || []).forEach(c => { map[c.walker] = Math.max(map[c.walker] || 0, c.stop_index); });
+    checkinCache = map;
+    return map;
+  } catch (_) { return checkinCache; }
+}
+
+function renderMemberMarkers(members) {
+  memberMarkers.forEach(m => m.remove());
+  memberMarkers = [];
+  (members || []).forEach(m => {
+    if (m.stale) return;
+    const el = document.createElement("div");
+    el.className = "member-pin";
+    el.textContent = (m.walker || "?").trim().slice(0, 2).toUpperCase();
+    el.title = m.walker;
+    memberMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([m.lon, m.lat]).addTo(map));
   });
 }
 
@@ -401,15 +609,15 @@ function checkAndTriggerQuickRoute() {
   }
 }
 
-// Setup Quick Dropdown Selector Buttons
+// Setup Quick Dropdown Selector Buttons (falls back to hand-picked points)
 function setupQuickSelectors() {
   const btn = document.getElementById("quick-route-btn");
   if (btn) {
     btn.addEventListener("click", () => {
-      const orig = document.getElementById("origin-select").value;
-      const dest = document.getElementById("destination-select").value;
+      const orig = document.getElementById("origin-select").value || pickedOrigin;
+      const dest = document.getElementById("destination-select").value || pickedDest;
       if (!orig || !dest) {
-        alert("Please select both Origin and Destination landmarks.");
+        alert("Pick an origin and destination: use the dropdowns or tap the map.");
         return;
       }
       if (orig === dest) {
@@ -1093,9 +1301,9 @@ function setAppMode(mode) {
 
   const modeLabel = document.getElementById("hud-mode-label");
   if (modeLabel) {
-    if (mode === "family") modeLabel.textContent = "Family Walk Plan (Dadu)";
-    else if (mode === "club") modeLabel.textContent = "Club Regroup Plan (Camac Loop)";
-    else if (mode === "trail") modeLabel.textContent = "Trail Hike Plan (GPX Regroup)";
+    if (mode === "family") modeLabel.textContent = lt("mode.familyPlan", "Family Walk Plan (Dadu)");
+    else if (mode === "club") modeLabel.textContent = lt("mode.clubPlan", "Club Regroup Plan (Camac Loop)");
+    else if (mode === "trail") modeLabel.textContent = lt("mode.trailPlan", "Trail Hike Plan (GPX Regroup)");
   }
 }
 
@@ -1160,6 +1368,20 @@ function setupModals() {
     closeRadarBtn.addEventListener("click", () => radarModal.classList.add("hidden"));
   }
 
+  // Feed Modal
+  const openFeedBtn = document.getElementById("open-feed-btn");
+  const feedModal = document.getElementById("feed-modal");
+  const closeFeedBtn = document.getElementById("close-feed-modal");
+  if (openFeedBtn && feedModal) {
+    openFeedBtn.addEventListener("click", () => {
+      feedModal.classList.remove("hidden");
+      loadFeed();
+    });
+  }
+  if (closeFeedBtn && feedModal) {
+    closeFeedBtn.addEventListener("click", () => feedModal.classList.add("hidden"));
+  }
+
   // QR Modal
   const openQrBtn = document.getElementById("open-qr-btn");
   const openQrDirect = document.getElementById("open-trip-qr-direct");
@@ -1186,27 +1408,26 @@ function setupModals() {
 }
 
 function setupWalkActions() {
-  // Walker vs Watcher view switcher
-  const btnWalker = document.getElementById("view-mode-walker");
-  const btnWatcher = document.getElementById("view-mode-watcher");
-  const contentWalker = document.getElementById("view-content-walker");
-  const contentWatcher = document.getElementById("view-content-watcher");
-
-  if (btnWalker && btnWatcher) {
-    btnWalker.addEventListener("click", () => {
-      btnWalker.classList.add("active");
-      btnWatcher.classList.remove("active");
-      contentWalker.classList.remove("hidden");
-      contentWatcher.classList.add("hidden");
+  // Walker / Watcher / Chat view switcher
+  const views = [
+    ["view-mode-walker", "view-content-walker"],
+    ["view-mode-watcher", "view-content-watcher"],
+    ["view-mode-chat", "view-content-chat"],
+    ["view-mode-group", "view-content-group"],
+  ];
+  views.forEach(([btnId, panelId]) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      views.forEach(([b, p]) => {
+        document.getElementById(b)?.classList.toggle("active", b === btnId);
+        document.getElementById(p)?.classList.toggle("hidden", p !== panelId);
+      });
+      if (panelId === "view-content-watcher") refreshWatcherTimeline(currentTripCode);
+      if (panelId === "view-content-chat") { lastChatId = 0; pollChat(); }
+      if (panelId === "view-content-group") pollGroup();
     });
-    btnWatcher.addEventListener("click", () => {
-      btnWatcher.classList.add("active");
-      btnWalker.classList.remove("active");
-      contentWatcher.classList.remove("hidden");
-      contentWatcher.classList.add("hidden");
-      refreshWatcherTimeline(currentTripCode);
-    });
-  }
+  });
 
   // Walker Tap: "I'm at Stop N"
   const tapCheckinBtn = document.getElementById("btn-tap-checkin");
@@ -1250,9 +1471,11 @@ function setupWalkActions() {
       tapReachedBtn.querySelector("span").textContent = "Sending Ping...";
 
       try {
-        const res = await fetch(`/api/trip/${currentTripCode}/reached`, { method: "POST" });
+        const walker = ((document.getElementById("walker-name-input")?.value) || "Walker").trim();
+        const res = await fetch(`/api/trip/${currentTripCode}/reached?walker=${encodeURIComponent(walker)}`, { method: "POST" });
         const data = await res.json();
-        tapReachedBtn.querySelector("span").textContent = "✅ Safely Reached (Ping Sent!)";
+        const pts = data.grass_points?.points ? ` (+${data.grass_points.points} 🌱)` : "";
+        tapReachedBtn.querySelector("span").textContent = `✅ Reached${pts} (Ping Sent!)`;
         tapReachedBtn.style.background = "#1F4D3A";
 
         // Update Watcher view
@@ -1260,7 +1483,7 @@ function setupWalkActions() {
         const wTitle = document.getElementById("watcher-status-title");
         const wDesc = document.getElementById("watcher-status-desc");
         if (wIcon) wIcon.textContent = "🎉";
-        if (wTitle) wTitle.textContent = "Reached Safely!";
+        if (wTitle) wTitle.textContent = lt("walk.reached", "Reached Safely!");
         if (wDesc) wDesc.textContent = `Family notified safely at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Walk complete.`;
       } catch (e) {
         console.error("Reached error:", e);
@@ -1320,8 +1543,30 @@ function setupRadarActions() {
     });
   }
 
-  // Submit Leave Card form
+  // Submit Leave Card form (pins at the tapped point, or the map centre)
   const form = document.getElementById("leave-card-form");
+  const photoInput = document.getElementById("card-photo-input");
+  if (photoInput) {
+    photoInput.addEventListener("change", () => {
+      cardPhotoData = null;
+      const prev = document.getElementById("card-photo-preview");
+      if (prev) { prev.style.display = "none"; prev.src = ""; }
+      const file = photoInput.files && photoInput.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 800 / Math.max(img.width, img.height));
+        const cv = document.createElement("canvas");
+        cv.width = Math.round(img.width * scale);
+        cv.height = Math.round(img.height * scale);
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        cardPhotoData = cv.toDataURL("image/jpeg", 0.7);
+        URL.revokeObjectURL(img.src);
+        if (prev) { prev.src = cardPhotoData; prev.style.display = "block"; }
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1333,6 +1578,7 @@ function setupRadarActions() {
       postBtn.disabled = true;
       postBtn.querySelector("span").textContent = "Moderating & Posting...";
 
+      const at = cardPlace || { lat: KOLKATA_CENTER[1], lon: KOLKATA_CENTER[0] };
       try {
         const res = await fetch("/api/cards", {
           method: "POST",
@@ -1341,16 +1587,29 @@ function setupRadarActions() {
             trip_code: currentTripCode,
             type: type,
             text: text,
-            lat: KOLKATA_CENTER[1],
-            lon: KOLKATA_CENTER[0],
+            lat: at.lat,
+            lon: at.lon,
             visibility: "public",
-            shade_at_creation: 0.82
+            shade_at_creation: 0.82,
+            photo: cardPhotoData,
           })
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.detail || "Card was not pinned.");
+          return;
+        }
         const saved = await res.json();
+        if (saved.moderation_status === "photo_too_large_dropped") {
+          alert("Text pinned, but the photo was too large and was dropped.");
+        }
         document.getElementById("card-text-input").value = "";
+        if (photoInput) photoInput.value = "";
+        cardPhotoData = null;
+        const prev = document.getElementById("card-photo-preview");
+        if (prev) { prev.style.display = "none"; prev.src = ""; }
         tabView.click();
-        loadNearbyCards(KOLKATA_CENTER[1], KOLKATA_CENTER[0]);
+        loadNearbyCards(at.lat, at.lon);
       } catch (err) {
         console.error("Post card error:", err);
       } finally {
@@ -1358,6 +1617,17 @@ function setupRadarActions() {
         postBtn.querySelector("span").textContent = "Pin Card to Location";
       }
     });
+  }
+}
+
+function cardIcon(type) {
+  switch (type) {
+    case "warning": return "⚠️";
+    case "meetup": return "☕";
+    case "hike": return "🥾";
+    case "story": return "📖";
+    case "note": return "📝";
+    default: return "💡";
   }
 }
 
@@ -1381,13 +1651,23 @@ async function loadNearbyCards(lat, lon) {
     allCards.forEach(c => {
       const item = document.createElement("div");
       item.className = "repair-card-item";
-      const icon = c.type === "warning" ? "⚠️" : (c.type === "meetup" ? "☕" : "💡");
+      const icon = cardIcon(c.type);
+      const photoHtml = c.photo ? `<img class="card-photo-thumb" src="${c.photo}" alt="Card photo" loading="lazy" />` : (c.has_photo ? `<div style="font-size:11px;">📷 photo attached — get closer to view</div>` : "");
+      const storyHtml = c.type === "story"
+        ? `<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+             <span class="lock-tag">${c.locked ? `🔒 LOCKED · ${c.distance_m} m away` : "🔓 WITHIN REACH"}</span>
+             <button class="btn-popup" style="padding:6px 10px;" onclick="unlockStory('${c.id}', this)">Unlock +25 🌱</button>
+           </div>
+           <div class="unlock-result" style="font-size:12px;margin-top:4px;"></div>`
+        : "";
       item.innerHTML = `
         <div class="repair-card-header">
           <span>${icon} ${c.type.toUpperCase()}</span>
           <span style="color:#1F4D3A; font-size:10px;">${c.distance_m}m ${c.bearing}</span>
         </div>
         <div class="repair-card-desc">"${c.text}"</div>
+        ${photoHtml}
+        ${storyHtml}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:10px; color:#6B5D4D;">
           <span>Shade: ${Math.round((c.shade_at_creation || 0.8) * 100)}%</span>
           <button class="btn-popup" style="padding:2px 6px; font-size:9.5px;" onclick="reportCard('${c.id}')">Report</button>
@@ -1409,6 +1689,36 @@ async function reportCard(cardId) {
   } catch (e) {
     console.error("Report card error:", e);
   }
+}
+
+// Unlocks a geo-locked story using the phone's GPS (no spoofing via map
+// centre: the server checks the real distance).
+async function unlockStory(cardId, btn) {
+  const box = btn?.closest(".repair-card-item")?.querySelector(".unlock-result");
+  const say = t => { if (box) box.textContent = t; };
+  if (!("geolocation" in navigator)) { say("GPS unavailable on this device."); return; }
+  const walker = ((document.getElementById("walker-name-input")?.value) || "Walker").trim();
+  if (btn) btn.disabled = true;
+  say("Reading GPS…");
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const res = await fetch(`/api/cards/${cardId}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walker, trip_code: currentTripCode, lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      });
+      const data = await res.json();
+      if (!res.ok) { say(data.detail || "Unlock failed."); return; }
+      if (!data.unlocked) { say(`🔒 ${data.distance_m} m away — need ${data.need_m} m. Walk closer.`); return; }
+      say(data.already ? "Already in your journal — no repeat points." : `🔓 Unlocked! "${data.text}" (+${data.points} 🌱)`);
+      if (data.photo) {
+        const img = document.createElement("img");
+        img.className = "card-photo-thumb"; img.src = data.photo; img.alt = "Story photo";
+        box.appendChild(img);
+      }
+      pollGroup(true);
+    } finally { if (btn) btn.disabled = false; }
+  }, () => say("GPS fix failed — step into the open and retry."), { enableHighAccuracy: true, timeout: 12000 });
 }
 
 function setupQrActions() {
@@ -1656,7 +1966,7 @@ function renderCardsOnMap(cards) {
   cards.forEach(c => {
     const el = document.createElement("div");
     el.className = "card-pin";
-    const icon = c.type === "warning" ? "⚠️" : (c.type === "meetup" ? "☕" : "💡");
+    const icon = cardIcon(c.type);
     el.innerHTML = icon;
 
     const popup = new maplibregl.Popup({ offset: 15 }).setHTML(`
@@ -1855,6 +2165,196 @@ async function refreshAccuracyMeter() {
   } catch (e) {
     if (tally) tally.textContent = "Accuracy meter offline — taps still save on the walk.";
   }
+}
+
+// -------------------------------------------------------------------
+// Trip chat room (polling; check-ins arrive as system messages)
+// -------------------------------------------------------------------
+function setupChat() {
+  const form = document.getElementById("chat-form");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("chat-input");
+      const text = (input.value || "").trim();
+      if (!text) return;
+      const walker = (document.getElementById("walker-name-input")?.value || "Walker").trim();
+      input.value = "";
+      try {
+        await fetch(`/api/trip/${currentTripCode}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walker, text }),
+        });
+        pollChat();
+      } catch (_) {}
+    });
+  }
+  if (!chatTimer) {
+    chatTimer = setInterval(() => {
+      const modal = document.getElementById("walk-modal");
+      if (modal && !modal.classList.contains("hidden")) pollChat(true);
+    }, 5000);
+  }
+}
+
+async function pollChat(quiet) {
+  const box = document.getElementById("chat-messages");
+  if (!box) return;
+  try {
+    const res = await fetch(`/api/trip/${currentTripCode}/chat?since_id=${lastChatId}`);
+    const data = await res.json();
+    const msgs = data.messages || [];
+    if (!msgs.length) {
+      if (lastChatId === 0 && !quiet) {
+        box.innerHTML = `<p style="font-size:13px;">No messages yet. Check-ins appear here automatically.</p>`;
+      }
+      return;
+    }
+    if (lastChatId === 0) box.innerHTML = "";
+    const me = ((document.getElementById("walker-name-input")?.value) || "").trim();
+    msgs.forEach(m => {
+      lastChatId = Math.max(lastChatId, m.id);
+      const div = document.createElement("div");
+      div.className = "chat-msg" + (m.is_system ? " system" : "") + ((!m.is_system && me && m.walker === me) ? " mine" : "");
+      const when = (m.timestamp || "").slice(11, 16);
+      div.innerHTML = m.is_system
+        ? `◉ ${m.walker} ${m.text} <span style="font-family:var(--font-mono);font-size:10px;">${when}</span>`
+        : `<div class="chat-who">${m.walker} · ${when}</div><div></div>`;
+      if (!m.is_system) div.lastChild.textContent = m.text;
+      box.appendChild(div);
+    });
+    const count = document.getElementById("chat-count");
+    if (count) count.textContent = String(lastChatId);
+    box.scrollTop = box.scrollHeight;
+  } catch (_) {}
+}
+
+// -------------------------------------------------------------------
+// Hike feed: announce trips, join groups (shade-wise route attached)
+// -------------------------------------------------------------------
+function setupFeed() {
+  const pub = document.getElementById("feed-publish-btn");
+  if (pub) {
+    pub.addEventListener("click", async () => {
+      const input = document.getElementById("feed-title-input");
+      const title = (input.value || "").trim();
+      if (!title) return;
+      pub.disabled = true;
+      try {
+        const res = await fetch(`/api/trip/${currentTripCode}/publish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title }),
+        });
+        if (res.ok) { input.value = ""; loadFeed(); }
+        else { const e = await res.json().catch(() => ({})); alert(e.detail || "Could not publish."); }
+      } finally { pub.disabled = false; }
+    });
+  }
+}
+
+async function loadFeed() {
+  const box = document.getElementById("feed-list");
+  if (!box) return;
+  box.innerHTML = `<p style="font-size:13px;">Loading hikes…</p>`;
+  try {
+    const res = await fetch("/api/feed");
+    const trips = (await res.json()).trips || [];
+    if (!trips.length) {
+      box.innerHTML = `<p style="font-size:13px;">No hikes announced yet — publish yours above.</p>`;
+      return;
+    }
+    box.innerHTML = "";
+    trips.forEach(t => {
+      const card = document.createElement("div");
+      card.className = "feed-card";
+      const walkers = (t.walkers || []).join(", ") || "—";
+      card.innerHTML = `
+        <h4>${t.title || "Untitled hike"}</h4>
+        <div style="font-size:13px;margin-top:2px;">${t.from || "?"} → ${t.to || "?"}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+          <span class="badge-mini">${t.category}</span>
+          <span class="badge-mini">${Math.round((t.distance_m || 0))} m</span>
+          <span class="badge-mini">${t.shade_percentage ?? "?"}% shade</span>
+          <span class="badge-mini">${t.package}</span>
+        </div>
+        <div style="font-size:12px;margin-top:4px;">${t.sun_minutes ?? "?"} sun-min · ${t.mode} · with ${walkers}</div>
+        <button class="btn btn-glass-sm" style="margin-top:8px;width:100%;" data-join="${t.trip_code}">Join ${t.trip_code}</button>
+      `;
+      box.appendChild(card);
+    });
+    box.querySelectorAll("[data-join]").forEach(b => b.addEventListener("click", () => joinFeedTrip(b.getAttribute("data-join"), b)));
+  } catch (_) {
+    box.innerHTML = `<p style="font-size:13px;">Feed offline.</p>`;
+  }
+}
+
+async function joinFeedTrip(code, btn) {
+  const walker = ((document.getElementById("walker-name-input")?.value) || "Walker").trim() || prompt("Your name?");
+  if (!walker) return;
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/trip/${code}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ walker }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentTripCode = code;
+      lastChatId = 0;
+      alert(`Joined ${code} (+${data.points} 🌱). Open Walk / Watch to hike.`);
+      document.getElementById("feed-modal")?.classList.add("hidden");
+      document.getElementById("walk-modal")?.classList.remove("hidden");
+    } else {
+      const e = await res.json().catch(() => ({}));
+      alert(e.detail || "Could not join.");
+    }
+  } finally { btn.disabled = false; }
+}
+
+// -------------------------------------------------------------------
+// Bengali/English toggle (static/locale.json; computed numbers untouched)
+// -------------------------------------------------------------------
+function t(key) {
+  if (LOCALES[currentLang] && LOCALES[currentLang][key] != null) return LOCALES[currentLang][key];
+  if (LOCALES.en && LOCALES.en[key] != null) return LOCALES.en[key];
+  return key;
+}
+
+// Localized text with a hard English fallback (used before locale loads)
+function lt(key, fallback) {
+  const v = t(key);
+  return v === key ? fallback : v;
+}
+
+async function loadLocale() {
+  try {
+    const res = await fetch("/static/locale.json");
+    LOCALES = await res.json();
+  } catch (_) { LOCALES = {}; }
+  wireLangToggle();
+  applyLocale(currentLang === "bn" ? "bn" : "en");
+}
+
+function wireLangToggle() {
+  const btn = document.getElementById("lang-toggle");
+  if (!btn || btn.__wired) return;
+  btn.__wired = true;
+  btn.addEventListener("click", () => applyLocale(currentLang === "bn" ? "en" : "bn"));
+}
+
+function applyLocale(lang) {
+  currentLang = lang === "bn" ? "bn" : "en";
+  try { localStorage.setItem("chhaya-lang", currentLang); } catch (_) {}
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.innerHTML = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph"))); });
+  const toggle = document.getElementById("lang-toggle");
+  if (toggle) toggle.title = t("lang.toggleTitle");
+  // dynamic mode label follows the toggle
+  setAppMode(currentMode);
 }
 
 // -------------------------------------------------------------------

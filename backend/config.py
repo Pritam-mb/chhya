@@ -76,6 +76,24 @@ OBS_MATCH_TOLERANCE = 0.25              # shade-fraction tolerance for a "match"
 OBS_MIN_TAPS_FOR_CORRECTION = 5         # taps on one label before learning a correction
 OBS_MAX_CORRECTION = 0.40               # clamp per-label correction to +-0.40
 
+# --- Trip Chat Room (live group chat per trip, polling) ---
+CHAT_MAX_CHARS = 280
+CHAT_POLL_LIMIT = 50
+
+# --- Cards: motives + photo attachments ---
+CARD_ALLOWED_TYPES = ["tip", "warning", "meetup", "note", "hike", "story"]
+CARD_PHOTO_MAX_BYTES = 350000  # data-URL length cap for attached photos
+
+# --- Grass points (outdoor-activity rewards, config-driven) ---
+POINTS_JOIN = 5            # joining a trip
+POINTS_CHECKIN = 10        # each checkpoint tap
+POINTS_STORY_UNLOCK = 25   # unlocking a geo-locked story
+POINTS_COMPLETION = 50     # reaching the destination together
+
+# --- Geo-locked stories + live positions ---
+STORY_UNLOCK_RADIUS_M = 60.0   # must be this close to unlock a story
+POSITION_STALE_S = 120         # positions older than this read "stale"
+
 # --- Geographic Center & Coordinate Reference ---
 KOLKATA_CENTER_LAT = 22.5510
 KOLKATA_CENTER_LON = 88.3530

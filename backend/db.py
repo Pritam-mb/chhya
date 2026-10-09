@@ -18,6 +18,16 @@ from backend.config import (
     CARD_MAX_CHARS,
     CARD_DEFAULT_TTL_HOURS,
     CARD_RATE_LIMIT_PER_MINUTE,
+    CARD_ALLOWED_TYPES,
+    CARD_PHOTO_MAX_BYTES,
+    CHAT_MAX_CHARS,
+    CHAT_POLL_LIMIT,
+    POINTS_JOIN,
+    POINTS_CHECKIN,
+    POINTS_STORY_UNLOCK,
+    POINTS_COMPLETION,
+    STORY_UNLOCK_RADIUS_M,
+    POSITION_STALE_S,
     OBS_MATCH_TOLERANCE,
     OBS_MIN_TAPS_FOR_CORRECTION,
     OBS_MAX_CORRECTION,
@@ -91,6 +101,63 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_observations_label
             ON observations (label)
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS trip_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trip_code TEXT NOT NULL,
+                walker_name TEXT NOT NULL,
+                is_system INTEGER DEFAULT 0,
+                text TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_messages_trip
+            ON trip_messages (trip_code, id)
+        """)
+        # Photo attachments for cards (migrates existing databases)
+        try:
+            conn.execute("ALTER TABLE cards ADD COLUMN photo TEXT")
+        except Exception:
+            pass
+        # Feed: public trip announcements (migrates existing databases)
+        try:
+            conn.execute("ALTER TABLE trips ADD COLUMN is_public INTEGER DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE trips ADD COLUMN title TEXT")
+        except Exception:
+            pass
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS walker_positions (
+                trip_code TEXT NOT NULL,
+                walker_name TEXT NOT NULL,
+                lat REAL NOT NULL,
+                lon REAL NOT NULL,
+                timestamp TEXT NOT NULL,
+                PRIMARY KEY (trip_code, walker_name)
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS grass_ledger (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trip_code TEXT NOT NULL,
+                walker_name TEXT NOT NULL,
+                points INTEGER NOT NULL,
+                reason TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS story_unlocks (
+                card_id TEXT NOT NULL,
+                walker_name TEXT NOT NULL,
+                trip_code TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                PRIMARY KEY (card_id, walker_name)
+            )
+        """)
         conn.commit()
 
 
@@ -112,6 +179,7 @@ def get_trip(code: str) -> Optional[Dict[str, Any]]:
         row = conn.execute("SELECT * FROM trips WHERE code = ?", (code,)).fetchone()
         if not row:
             return None
+        cols = row.keys()
         return {
             "code": row["code"],
             "mode": row["mode"],
@@ -119,6 +187,8 @@ def get_trip(code: str) -> Optional[Dict[str, Any]]:
             "reached": bool(row["reached"]),
             "reached_at": row["reached_at"],
             "created_at": row["created_at"],
+            "is_public": bool(row["is_public"]) if "is_public" in cols else False,
+            "title": row["title"] if "title" in cols else None,
         }
 
 
@@ -311,16 +381,25 @@ def create_card(
     to_group: Optional[str] = None,
     shade_at_creation: Optional[float] = None,
     ttl_hours: int = CARD_DEFAULT_TTL_HOURS,
+    photo: Optional[str] = None,
 ) -> Dict[str, Any]:
     cleaned_text, is_safe, status = clean_and_moderate_card_text(text)
     card_id = f"card_{datetime.datetime.now().strftime('%y%m%d%H%M%S')}_{os.urandom(3).hex()}"
     now = datetime.datetime.now()
     expires_at = (now + datetime.timedelta(hours=ttl_hours)).isoformat()
 
+    # Photo attachments stay small and honest: data-URL images only, capped.
+    clean_photo = None
+    if photo and isinstance(photo, str) and photo.startswith("data:image/"):
+        if len(photo) <= CARD_PHOTO_MAX_BYTES:
+            clean_photo = photo
+        else:
+            status = "photo_too_large_dropped"
+
     with get_connection() as conn:
         conn.execute("""
-            INSERT INTO cards (id, trip_code, type, text, lat, lon, visibility, to_group, shade_at_creation, created_at, expires_at, hidden)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO cards (id, trip_code, type, text, lat, lon, visibility, to_group, shade_at_creation, created_at, expires_at, hidden, photo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         """, (
             card_id,
             trip_code,
@@ -332,7 +411,8 @@ def create_card(
             to_group,
             shade_at_creation or 0.75,
             now.isoformat(),
-            expires_at
+            expires_at,
+            clean_photo,
         ))
         conn.commit()
 
@@ -349,6 +429,7 @@ def create_card(
         "created_at": now.isoformat(),
         "expires_at": expires_at,
         "moderation_status": status,
+        "has_photo": clean_photo is not None,
     }
 
 
@@ -385,10 +466,16 @@ def find_nearby_cards(
         d = haversine_distance_m(lat, lon, r["lat"], r["lon"])
         if d <= radius_m:
             bearing = calculate_compass_bearing(lat, lon, r["lat"], r["lon"])
+            cols = r.keys()
+            # Geo-locked stories: teaser only until the walker is close enough.
+            locked = r["type"] == "story" and d > STORY_UNLOCK_RADIUS_M
+            full_text = r["text"] or ""
+            shown_text = (full_text[:24] + "… (locked — get closer)") if locked and full_text else full_text
             card_dict = {
                 "id": r["id"],
                 "type": r["type"],
-                "text": r["text"],
+                "text": shown_text,
+                "locked": locked,
                 "lat": r["lat"],
                 "lon": r["lon"],
                 "distance_m": round(d),
@@ -398,6 +485,9 @@ def find_nearby_cards(
                 "to_group": c_to,
                 "shade_at_creation": r["shade_at_creation"],
                 "created_at": r["created_at"],
+                "has_photo": (bool(r["photo"]) and not locked) if "photo" in cols else False,
+                # Full photo bytes only for immediate, unlocked cards; radar rows carry the flag.
+                "photo": (r["photo"] if d <= CARD_NEAR_RADIUS_M and not locked else None) if "photo" in cols else None,
             }
             if d <= CARD_NEAR_RADIUS_M:
                 immediate_cards.append(card_dict)
@@ -423,6 +513,216 @@ def report_and_hide_card(card_id: str) -> bool:
         cur = conn.execute("UPDATE cards SET hidden = 1 WHERE id = ?", (card_id,))
         conn.commit()
         return cur.rowcount > 0
+
+
+# ------------------------------------------------------------ Trip chat room
+def clean_chat_text(text: str) -> str:
+    """PII-stripped chat text capped at CHAT_MAX_CHARS (same rules as cards)."""
+    cleaned = (text or "").strip()[:CHAT_MAX_CHARS]
+    cleaned = re.sub(PHONE_REGEX, "[PHONE REMOVED]", cleaned)
+    cleaned = re.sub(EMAIL_REGEX, "[EMAIL REMOVED]", cleaned)
+    return cleaned
+
+
+def post_trip_message(trip_code: str, walker_name: str, text: str, is_system: bool = False) -> Dict[str, Any]:
+    now = datetime.datetime.now().isoformat()
+    cleaned = clean_chat_text(text)
+    if not cleaned:
+        raise ValueError("Empty message.")
+    with get_connection() as conn:
+        cur = conn.execute("""
+            INSERT INTO trip_messages (trip_code, walker_name, is_system, text, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (trip_code, walker_name[:40] or "Walker", 1 if is_system else 0, cleaned, now))
+        conn.commit()
+        msg_id = cur.lastrowid
+    return {"id": msg_id, "trip_code": trip_code, "walker": walker_name[:40] or "Walker",
+            "is_system": is_system, "text": cleaned, "timestamp": now}
+
+
+def get_trip_messages(trip_code: str, since_id: int = 0, limit: int = CHAT_POLL_LIMIT) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT id, walker_name, is_system, text, timestamp
+            FROM trip_messages
+            WHERE trip_code = ? AND id > ?
+            ORDER BY id ASC
+            LIMIT ?
+        """, (trip_code, since_id, limit)).fetchall()
+        return [{"id": r["id"], "walker": r["walker_name"], "is_system": bool(r["is_system"]),
+                 "text": r["text"], "timestamp": r["timestamp"]} for r in rows]
+
+
+# ------------------------------------------------- Live positions + grass
+def upsert_position(trip_code: str, walker_name: str, lat: float, lon: float) -> Dict[str, Any]:
+    """Opt-in live spot sharing: one latest row per walker per trip."""
+    now = datetime.datetime.now().isoformat()
+    name = (walker_name or "Walker")[:40]
+    with get_connection() as conn:
+        conn.execute("""
+            INSERT INTO walker_positions (trip_code, walker_name, lat, lon, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (trip_code, walker_name)
+            DO UPDATE SET lat = excluded.lat, lon = excluded.lon, timestamp = excluded.timestamp
+        """, (trip_code, name, float(lat), float(lon), now))
+        conn.commit()
+    return {"trip_code": trip_code, "walker": name, "lat": float(lat), "lon": float(lon), "timestamp": now}
+
+
+def get_positions(trip_code: str) -> List[Dict[str, Any]]:
+    now = datetime.datetime.now()
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT walker_name, lat, lon, timestamp
+            FROM walker_positions WHERE trip_code = ?
+        """, (trip_code,)).fetchall()
+        out = []
+        for r in rows:
+            try:
+                age = (now - datetime.datetime.fromisoformat(r["timestamp"])).total_seconds()
+            except Exception:
+                age = 1e9
+            out.append({"walker": r["walker_name"], "lat": r["lat"], "lon": r["lon"],
+                        "timestamp": r["timestamp"], "stale": age > POSITION_STALE_S})
+        return out
+
+
+def award_points(trip_code: str, walker_name: str, points: int, reason: str) -> Dict[str, Any]:
+    now = datetime.datetime.now().isoformat()
+    name = (walker_name or "Walker")[:40]
+    with get_connection() as conn:
+        conn.execute("""
+            INSERT INTO grass_ledger (trip_code, walker_name, points, reason, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (trip_code, name, int(points), reason, now))
+        conn.commit()
+    return {"trip_code": trip_code, "walker": name, "points": int(points), "reason": reason}
+
+
+def trip_leaderboard(trip_code: str) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT walker_name, SUM(points) AS points, COUNT(*) AS events
+            FROM grass_ledger WHERE trip_code = ?
+            GROUP BY walker_name ORDER BY points DESC
+        """, (trip_code,)).fetchall()
+        return [{"walker": r["walker_name"], "points": r["points"], "events": r["events"]} for r in rows]
+
+
+def global_leaderboard(limit: int = 10) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT walker_name, SUM(points) AS points, COUNT(*) AS events
+            FROM grass_ledger
+            GROUP BY walker_name ORDER BY points DESC LIMIT ?
+        """, (limit,)).fetchall()
+        return [{"walker": r["walker_name"], "points": r["points"], "events": r["events"]} for r in rows]
+
+
+def unlock_story(card_id: str, walker_name: str, trip_code: str, lat: float, lon: float) -> Dict[str, Any]:
+    """Geo-locked story unlock: must be within STORY_UNLOCK_RADIUS_M, once per walker."""
+    now_iso = datetime.datetime.now().isoformat()
+    with get_connection() as conn:
+        card = conn.execute("SELECT * FROM cards WHERE id = ? AND hidden = 0 AND expires_at > ?",
+                            (card_id, now_iso)).fetchone()
+        if not card:
+            raise LookupError("Story not found or expired.")
+        if card["type"] != "story":
+            raise ValueError("Only story cards unlock for points.")
+        cols = card.keys()
+        photo = card["photo"] if "photo" in cols else None
+        d = haversine_distance_m(lat, lon, card["lat"], card["lon"])
+        if d > STORY_UNLOCK_RADIUS_M:
+            return {"unlocked": False, "distance_m": round(d),
+                    "need_m": STORY_UNLOCK_RADIUS_M,
+                    "message": f"Get within {STORY_UNLOCK_RADIUS_M:.0f} m to unlock this story."}
+        name = (walker_name or "Walker")[:40]
+        already = conn.execute("SELECT 1 FROM story_unlocks WHERE card_id = ? AND walker_name = ?",
+                               (card_id, name)).fetchone()
+        if already:
+            return {"unlocked": True, "already": True, "distance_m": round(d),
+                    "text": card["text"], "photo": photo, "points": 0}
+        conn.execute("INSERT INTO story_unlocks (card_id, walker_name, trip_code, timestamp) VALUES (?, ?, ?, ?)",
+                     (card_id, name, trip_code, now_iso))
+        conn.commit()
+    award = award_points(trip_code, name, POINTS_STORY_UNLOCK, f"story:{card_id}")
+    return {"unlocked": True, "already": False, "distance_m": round(d),
+            "text": card["text"], "photo": photo, "points": award["points"]}
+
+
+# ------------------------------------------------------- Feed: publish/join
+def publish_trip(code: str, title: str) -> bool:
+    clean = (title or "").strip()[:80]
+    if not clean:
+        raise ValueError("Feed posts need a title.")
+    with get_connection() as conn:
+        cur = conn.execute("UPDATE trips SET is_public = 1, title = ? WHERE code = ?", (clean, code))
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def join_trip(code: str, walker_name: str) -> Dict[str, Any]:
+    """Adds a walker to the plan's walker list without touching reached state."""
+    import json
+    name = (walker_name or "Walker").strip()[:40] or "Walker"
+    with get_connection() as conn:
+        row = conn.execute("SELECT plan_json FROM trips WHERE code = ?", (code,)).fetchone()
+        if not row:
+            raise LookupError("Trip not found.")
+        plan = json.loads(row["plan_json"])
+        walkers = plan.get("walkers") or []
+        if not any((w.get("name", "").lower() == name.lower()) for w in walkers if isinstance(w, dict)):
+            walkers.append({"name": name, "sun_sensitivity": "normal", "pace": "normal"})
+            plan["walkers"] = walkers
+            conn.execute("UPDATE trips SET plan_json = ? WHERE code = ?", (json.dumps(plan), code))
+            conn.commit()
+            award = award_points(code, name, POINTS_JOIN, "join")
+        else:
+            award = {"points": 0, "reason": "already-joined"}
+    post_trip_message(code, name, "joined the group", is_system=True)
+    return {"trip_code": code, "walker": name, "walkers": walkers, "points": award["points"]}
+
+
+def trip_category(distance_m: float) -> str:
+    if distance_m < 1000:
+        return "Short stroll"
+    if distance_m < 3000:
+        return "Medium march"
+    return "Long haul"
+
+
+def get_feed(limit: int = 20) -> List[Dict[str, Any]]:
+    import json
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT code, mode, plan_json, title, created_at
+            FROM trips WHERE is_public = 1 ORDER BY created_at DESC LIMIT ?
+        """, (limit,)).fetchall()
+        feed = []
+        for r in rows:
+            try:
+                plan = json.loads(r["plan_json"])
+            except Exception:
+                continue
+            dist = float(plan.get("distance_meters") or 0)
+            stops = plan.get("stops") or []
+            food = sum(1 for s in stops if isinstance(s, dict) and s.get("kind") == "cafe")
+            feed.append({
+                "trip_code": r["code"],
+                "title": r["title"],
+                "mode": r["mode"],
+                "from": (plan.get("origin") or {}).get("name"),
+                "to": (plan.get("destination") or {}).get("name"),
+                "distance_m": round(dist),
+                "category": trip_category(dist),
+                "shade_percentage": plan.get("shade_percentage"),
+                "sun_minutes": plan.get("sun_minutes"),
+                "walkers": [w.get("name") for w in (plan.get("walkers") or []) if isinstance(w, dict)],
+                "food_stops": food,
+                "package": "food package" if food else "carry water",
+                "created_at": r["created_at"],
+            })
+        return feed
 
 
 def generate_trip_qr_base64(trip_code: str, base_url: str = "http://localhost:8000") -> str:

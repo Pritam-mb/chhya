@@ -24,23 +24,26 @@
         </div>
         <div class="brand-text">
           <h1 class="brand-title">ছায়া <span class="brand-en">Chhaya</span></h1>
-          <p class="brand-tagline">Kolkata shade navigation · Park St corridor · printed for a hot afternoon</p>
+          <p class="brand-tagline" data-i18n="brand.tagline">Kolkata shade navigation · Park St corridor · printed for a hot afternoon</p>
         </div>
       </div>
       <div class="header-badges">
         <span class="badge badge-accent">TOUCH GRASS ’26</span>
         <span class="badge badge-solar" id="solar-badge">Solar: 30.2° (1.7x)</span>
-        <span class="badge badge-simulated" id="demo-mode-tag" title="Seeded demonstration data">Simulated demo</span>
+        <span class="badge badge-simulated" id="demo-mode-tag" title="Seeded demonstration data" data-i18n="badge.simulated">Simulated demo</span>
+        <button id="lang-toggle" class="badge" data-i18n="lang.toggle" title="বাংলায় দেখুন">বাং</button>
       </div>
       <div class="mode-switcher-bar" role="tablist" aria-label="Walk mode">
-        <button class="mode-tab active" id="mode-tab-family" data-mode="family"><span>👵</span> Family</button>
-        <button class="mode-tab club" id="mode-tab-club" data-mode="club"><span>🏃</span> Club</button>
-        <button class="mode-tab trail" id="mode-tab-trail" data-mode="trail"><span>🥾</span> Trail</button>
+        <button class="mode-tab active" id="mode-tab-family" data-mode="family"><span>👵</span> <span data-i18n="mode.family">Family</span></button>
+        <button class="mode-tab club" id="mode-tab-club" data-mode="club"><span>🏃</span> <span data-i18n="mode.club">Club</span></button>
+        <button class="mode-tab trail" id="mode-tab-trail" data-mode="trail"><span>🥾</span> <span data-i18n="mode.trail">Trail</span></button>
       </div>
       <div class="top-action-bar">
-        <button id="open-radar-btn" class="btn-action-glass">📍 What’s Here?</button>
-        <button id="open-walk-btn" class="btn-action-glass">🚶 Walk / Watch</button>
-        <button id="open-qr-btn" class="btn-action-glass">🎫 Trip QR</button>
+        <button id="open-radar-btn" class="btn-action-glass" data-i18n="action.here">📍 What’s Here?</button>
+        <button id="open-walk-btn" class="btn-action-glass" data-i18n="action.walk">🚶 Walk / Watch</button>
+        <button id="open-qr-btn" class="btn-action-glass" data-i18n="action.qr">🎫 Trip QR</button>
+        <button id="locate-btn" class="btn-action-glass" title="Use my location and track me" data-i18n="action.locate">◎ Locate</button>
+        <button id="open-feed-btn" class="btn-action-glass" title="Find or announce group hikes" data-i18n="action.feed">🌱 Feed</button>
       </div>
     </header>
 
@@ -49,29 +52,29 @@
         <form id="agent-form" class="search-form">
           <div class="input-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="prompt-input" placeholder="Walk dadu to the clinic around 3 pm — he can’t take much sun…" autocomplete="off" aria-label="Describe your walk" />
+            <input type="text" id="prompt-input" data-i18n-ph="search.placeholder" placeholder="Walk dadu to the clinic around 3 pm — he can’t take much sun…" autocomplete="off" aria-label="Describe your walk" />
           </div>
-          <button type="submit" id="submit-btn" class="btn btn-primary"><span>Route in Shade</span><span aria-hidden="true">→</span></button>
+          <button type="submit" id="submit-btn" class="btn btn-primary"><span data-i18n="search.go">Route in Shade</span><span aria-hidden="true">→</span></button>
         </form>
         <div class="quick-route-bar">
-          <div class="selector-group"><span class="select-label">From</span><select id="origin-select" class="glass-select" aria-label="Origin"><option value="">Select origin…</option></select></div>
+          <div class="selector-group"><span class="select-label" data-i18n="quick.from">From</span><select id="origin-select" class="glass-select" aria-label="Origin"><option value="">Select origin…</option></select></div>
           <div class="selector-arrow">→</div>
-          <div class="selector-group"><span class="select-label">To</span><select id="destination-select" class="glass-select" aria-label="Destination"><option value="">Select destination…</option></select></div>
-          <button id="quick-route-btn" class="btn btn-glass-sm">Go</button>
+          <div class="selector-group"><span class="select-label" data-i18n="quick.to">To</span><select id="destination-select" class="glass-select" aria-label="Destination"><option value="">Select destination…</option></select></div>
+          <button id="quick-route-btn" class="btn btn-glass-sm" data-i18n="quick.go">Go</button>
         </div>
         <div class="preset-chips">
-          <span class="chips-label">Presets</span>
-          <button class="chip chip-active" data-mode="family" data-prompt="Walk Dadu to the clinic around noon, he can't take much sun.">👵 Dadu to Clinic</button>
-          <button class="chip" data-mode="club" data-prompt="Sunday 4pm, 6 of us, Dadu can't take much sun, Rina wants chai on the way.">🏃 Sunday Club</button>
-          <button class="chip" data-mode="family" data-prompt="Walk from Flurys to Camac Square at noon, rush pace.">☀️ High Noon</button>
-          <button class="chip" data-mode="trail" data-prompt="Hike Russell Street to Camac loop with regroup points.">🥾 Russell Loop</button>
+          <span class="chips-label" data-i18n="chips.label">Presets</span>
+          <button class="chip chip-active" data-mode="family" data-prompt="Walk Dadu to the clinic around noon, he can't take much sun." data-i18n="chip.family">👵 Dadu to Clinic</button>
+          <button class="chip" data-mode="club" data-prompt="Sunday 4pm, 6 of us, Dadu can't take much sun, Rina wants chai on the way." data-i18n="chip.club">🏃 Sunday Club</button>
+          <button class="chip" data-mode="family" data-prompt="Walk from Flurys to Camac Square at noon, rush pace." data-i18n="chip.noon">☀️ High Noon</button>
+          <button class="chip" data-mode="trail" data-prompt="Hike Russell Street to Camac loop with regroup points." data-i18n="chip.trail">🥾 Russell Loop</button>
         </div>
       </div>
     </div>
 
     <div id="noon-alert" class="glass-panel noon-alert hidden" role="alert">
       <div class="alert-icon">☀️</div>
-      <div class="alert-content"><strong>High-noon honesty note</strong><p>At 12 PM the sun sits ~60° overhead. Shadows shrink to 0.56× height and barely reach the pavement. Leave before 10 AM or after 2:30 PM for deep shade.</p></div>
+      <div class="alert-content"><strong data-i18n="noon.title">High-noon honesty note</strong><p data-i18n="noon.body">At 12 PM the sun sits ~60° overhead. Shadows shrink to 0.56× height and barely reach the pavement. Leave before 10 AM or after 2:30 PM for deep shade.</p></div>
       <button class="alert-close" id="noon-alert-close" aria-label="Dismiss alert">×</button>
     </div>
 
@@ -81,11 +84,11 @@
         <button id="hud-close" class="btn-icon" title="Close comparison">×</button>
       </div>
       <div class="hud-tabs" role="tablist">
-        <button class="hud-tab-btn active" id="tab-btn-overview" data-target="panel-overview">Route</button>
-        <button class="hud-tab-btn" id="tab-btn-sweep" data-target="panel-sweep">Start time</button>
-        <button class="hud-tab-btn" id="tab-btn-stops" data-target="panel-stops">Stops (<span id="stops-count-badge">0</span>)</button>
-        <button class="hud-tab-btn" id="tab-btn-repair" data-target="panel-repair">Repair</button>
-        <button class="hud-tab-btn" id="tab-btn-share" data-target="panel-share">Share</button>
+        <button class="hud-tab-btn active" id="tab-btn-overview" data-target="panel-overview" data-i18n="tabs.route">Route</button>
+        <button class="hud-tab-btn" id="tab-btn-sweep" data-target="panel-sweep" data-i18n="tabs.sweep">Start time</button>
+        <button class="hud-tab-btn" id="tab-btn-stops" data-target="panel-stops"><span data-i18n="tabs.stops">Stops</span> (<span id="stops-count-badge">0</span>)</button>
+        <button class="hud-tab-btn" id="tab-btn-repair" data-target="panel-repair" data-i18n="tabs.repair">Repair</button>
+        <button class="hud-tab-btn" id="tab-btn-share" data-target="panel-share" data-i18n="tabs.share">Share</button>
       </div>
 
       <div id="panel-overview" class="hud-tab-panel active">
@@ -95,8 +98,8 @@
           <span class="badge" id="weather-budget-tag" style="margin-left:auto;align-self:center;">4.0m</span>
         </div>
         <div class="savings-card">
-          <span class="stamp" id="savings-stamp">SHADE SAVED</span>
-          <div class="savings-value"><span id="saved-sun-mins">0.0</span><span class="savings-unit">sun-min saved</span></div>
+          <span class="stamp" id="savings-stamp" data-i18n="stamp.saved">SHADE SAVED</span>
+          <div class="savings-value"><span id="saved-sun-mins">0.0</span><span class="savings-unit" data-i18n="savings.unit">sun-min saved</span></div>
           <p id="savings-subtitle" class="savings-subtitle">Shielding you from the Kolkata afternoon</p>
           <div class="gauge-wrap">
             <svg id="sun-gauge" viewBox="0 0 200 112" role="img" aria-label="Sun budget gauge">
@@ -106,40 +109,40 @@
               <g><line id="gauge-needle" x1="100" y1="100" x2="100" y2="34" stroke="#C8321E" stroke-width="3.5"/><circle cx="100" cy="100" r="7" fill="#2A1F17"/></g>
               <text x="100" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" id="gauge-label">0 / 4.0 sun-min</text>
             </svg>
-            <div class="gauge-caption">sun-budget · marigold → vermilion as exposure grows</div>
+            <div class="gauge-caption" data-i18n="gauge.caption">sun-budget · marigold → vermilion as exposure grows</div>
           </div>
         </div>
         <div class="stat-grid" style="margin-top:10px;">
           <div class="stat-box stat-shade active-path" id="shade-stat-box">
-            <div class="stat-box-header"><span class="status-dot dot-green"></span><strong>Shaded path</strong><span class="badge-mini badge-green">Pick</span></div>
-            <div class="stat-row"><span>Sun</span><strong id="shade-sun-mins" class="color-green">- mins</strong></div>
-            <div class="stat-row"><span>Walk</span><span><strong id="shade-total-mins">-</strong> min (<span id="shade-dist">-</span>)</span></div>
+            <div class="stat-box-header"><span class="status-dot dot-green"></span><strong data-i18n="stat.shaded">Shaded path</strong><span class="badge-mini badge-green" data-i18n="stat.pick">Pick</span></div>
+            <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shade-sun-mins" class="color-green">- mins</strong></div>
+            <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shade-total-mins">-</strong> min (<span id="shade-dist">-</span>)</span></div>
             <div class="progress-bar-bg"><div id="shade-bar" class="progress-bar-fill fill-green" style="width:0%"></div></div>
             <small id="shade-pct" class="stat-subtext">Calculating…</small>
           </div>
           <div class="stat-box stat-shortest" id="shortest-stat-box">
-            <div class="stat-box-header"><span class="status-dot dot-red"></span><strong>Shortest</strong><span class="badge-mini badge-direct">Direct</span></div>
-            <div class="stat-row"><span>Sun</span><strong id="shortest-sun-mins" class="color-red">- mins</strong></div>
-            <div class="stat-row"><span>Walk</span><span><strong id="shortest-total-mins">-</strong> min (<span id="shortest-dist">-</span>)</span></div>
+            <div class="stat-box-header"><span class="status-dot dot-red"></span><strong data-i18n="stat.shortest">Shortest</strong><span class="badge-mini badge-direct" data-i18n="stat.direct">Direct</span></div>
+            <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shortest-sun-mins" class="color-red">- mins</strong></div>
+            <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shortest-total-mins">-</strong> min (<span id="shortest-dist">-</span>)</span></div>
             <div class="progress-bar-bg"><div id="shortest-bar" class="progress-bar-fill fill-red" style="width:0%"></div></div>
             <small id="shortest-pct" class="stat-subtext">Baseline…</small>
           </div>
         </div>
         <div class="tradeoff-box" style="margin-top:10px;"><div class="tradeoff-icon">✎</div><p id="tradeoff-text" class="tradeoff-text">Calculating trade-off…</p></div>
         <div class="segments-card" style="margin-top:10px;">
-          <div class="segments-header"><span class="segments-title">Lane-by-lane exposure · solid = shade, dashed = sun</span><span id="segment-count" class="badge-mini">0 lanes</span></div>
+          <div class="segments-header"><span class="segments-title" data-i18n="legend.exposure">Lane-by-lane exposure · solid = shade, dashed = sun</span><span id="segment-count" class="badge-mini">0 lanes</span></div>
           <div id="segments-list" class="segments-list"></div>
         </div>
         <div class="voice-card" style="margin-top:10px;">
           <div class="voice-info">
-            <button id="voice-play-btn" class="btn btn-voice"><span id="voice-btn-text">▶ Listen briefing</span></button>
+            <button id="voice-play-btn" class="btn btn-voice"><span id="voice-btn-text" data-i18n="voice.listen">▶ Listen briefing</span></button>
             <span class="voice-provider" id="voice-provider-tag">Voice briefing</span>
           </div>
           <div id="voice-wave" class="voice-wave hidden"><span></span><span></span><span></span><span></span><span></span></div>
           <p id="voice-script" class="voice-script">“Leave at 3 PM via the shaded Middleton Row lane…”</p>
         </div>
         <div class="ticket-card" id="accuracy-meter" style="margin-top:10px;">
-          <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;">FIELD CHECK · PREDICTED vs SEEN</div>
+          <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="meter.title">FIELD CHECK · PREDICTED vs SEEN</div>
           <div id="accuracy-tally" style="font-size:13px;margin-top:4px;">No taps yet — be the first to tap sun/shade on the walk.</div>
           <div id="accuracy-streets" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
         </div>
@@ -147,8 +150,8 @@
 
       <div id="panel-sweep" class="hud-tab-panel hidden">
         <div class="sweep-container">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><strong style="font-family:var(--font-display);font-size:16px;">Best time to leave</strong><span id="sweep-best-badge">Best: 11:40</span></div>
-          <p style="font-size:13px;">Sun exposure every 10 min across the window. Best start gets the stamp.</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><strong style="font-family:var(--font-display);font-size:16px;" data-i18n="sweep.title">Best time to leave</strong><span id="sweep-best-badge">Best: 11:40</span></div>
+          <p style="font-size:13px;" data-i18n="sweep.sub">Sun exposure every 10 min across the window. Best start gets the stamp.</p>
           <svg id="sweep-curve-svg" viewBox="0 0 320 90" preserveAspectRatio="none" aria-label="Exposure curve"></svg>
           <div class="sweep-bars" id="sweep-bars-container"></div>
           <div id="sweep-budget-warning" class="hidden" style="background:var(--sun);border:2px solid var(--ink);padding:8px;font-size:12.5px;font-weight:700;">⚠ No comfortable window today — try later, or take a ride.<p id="sweep-warning-subtext" style="font-weight:400;">All slots exceed the sun budget.</p></div>
@@ -156,31 +159,31 @@
       </div>
 
       <div id="panel-stops" class="hud-tab-panel hidden">
-        <strong style="font-family:var(--font-display);font-size:17px;">Stop passport</strong>
-        <p style="font-size:13px;">A ticket per halt. Stamped when your feet reach it.</p>
+        <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="stops.title">Stop passport</strong>
+        <p style="font-size:13px;" data-i18n="stops.sub">A ticket per halt. Stamped when your feet reach it.</p>
         <div id="rest-stops-list" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;"></div>
       </div>
 
       <div id="panel-repair" class="hud-tab-panel hidden">
         <div id="repair-alert-box" class="repair-banner"><div class="repair-banner-title">⚠ <span id="repair-status-title">Watching pace</span></div><p id="repair-status-desc" style="font-size:13px;">If a walker lags &gt; 3 min, ranked fixes land here.</p></div>
-        <strong style="font-size:14px;">Regroup tickets</strong>
+        <strong style="font-size:14px;" data-i18n="repair.title">Regroup tickets</strong>
         <div id="repair-cards-list" style="margin-top:4px;"></div>
-        <div class="ticket-card"><div style="font-family:var(--font-mono);font-size:10px;font-weight:700;">GROUP ALERT · COPYABLE</div><p id="repair-copy-text" style="font-size:13px;margin-top:4px;">Group walking together.</p><button id="copy-repair-btn" class="btn btn-glass-sm" style="margin-top:8px;width:100%;">Copy group alert</button></div>
+        <div class="ticket-card"><div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="repair.groupAlert">GROUP ALERT · COPYABLE</div><p id="repair-copy-text" style="font-size:13px;margin-top:4px;">Group walking together.</p><button id="copy-repair-btn" class="btn btn-glass-sm" style="margin-top:8px;width:100%;" data-i18n="repair.copy">Copy group alert</button></div>
       </div>
 
       <div id="panel-share" class="hud-tab-panel hidden">
-        <strong style="font-family:var(--font-display);font-size:17px;">Trip chit</strong>
+        <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="share.title">Trip chit</strong>
         <div class="ticket-card"><p id="share-plan-text" style="font-size:14px;line-height:1.5;">Generating briefing…</p></div>
-        <div style="display:flex;gap:8px;margin-top:10px;"><button id="copy-share-btn" class="btn btn-primary" style="flex:1;justify-content:center;"><span>Copy message</span></button><button id="open-trip-qr-direct" class="btn btn-glass-sm" style="flex:1;">View QR</button></div>
-        <div style="margin-top:8px;font-family:var(--font-mono);font-size:12px;">Trip code · <strong id="share-trip-code">dadu-clinic</strong></div>
+        <div style="display:flex;gap:8px;margin-top:10px;"><button id="copy-share-btn" class="btn btn-primary" style="flex:1;justify-content:center;"><span data-i18n="share.copy">Copy message</span></button><button id="open-trip-qr-direct" class="btn btn-glass-sm" style="flex:1;" data-i18n="share.qr">View QR</button></div>
+        <div style="margin-top:8px;font-family:var(--font-mono);font-size:12px;"><span data-i18n="share.code">Trip code ·</span> <strong id="share-trip-code">dadu-clinic</strong></div>
       </div>
     </aside>
 
     <div class="glass-panel window-widget" aria-label="Best walking window">
-      <div class="widget-header"><div><span class="widget-badge">TabPFN · ML</span><h3 class="widget-title">Best walking window</h3></div><span class="mae-tag" id="mae-tag">MAE …</span></div>
+      <div class="widget-header"><div><span class="widget-badge">TabPFN · ML</span><h3 class="widget-title" data-i18n="widget.title">Best walking window</h3></div><span class="mae-tag" id="mae-tag">MAE …</span></div>
       <div class="window-recommendation" role="button" tabindex="0"><div class="window-time" id="best-window-time">14:30 – 16:30</div><div class="window-reason" id="best-window-reason">Afternoon shade · long building shadows</div></div>
       <div class="window-list" id="window-list"></div>
-      <div class="window-hint">Tap a window to preview its shadows</div>
+      <div class="window-hint" data-i18n="widget.hint">Tap a window to preview its shadows</div>
     </div>
 
     <button class="theme-toggle" id="theme-toggle" title="Toggle warm dark paper" aria-label="Toggle dark mode">◐</button>
@@ -189,7 +192,7 @@
       <div class="slider-header">
         <div class="slider-controls">
           <button id="play-btn" class="btn-play" title="Sweep shadows"><svg id="play-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
-          <span class="slider-title">Sundial · shadow sweep</span>
+          <span class="slider-title" data-i18n="slider.title">Sundial · shadow sweep</span>
         </div>
         <div class="current-time-display"><span id="time-display">15:00</span><small>IST</small></div>
       </div>
@@ -203,7 +206,7 @@
           <line id="gnomon-shadow" x1="60" y1="60" x2="60" y2="22" stroke="#1F4D3A" stroke-width="4" stroke-linecap="round"/>
           <circle cx="60" cy="60" r="5" fill="#C8321E" stroke="#2A1F17" stroke-width="2"/>
         </svg>
-        <div class="sundial-caption">gnomon shadow follows the slider.<br>mono numerals · IST</div>
+        <div class="sundial-caption" data-i18n="slider.caption">gnomon shadow follows the slider.<br>mono numerals · IST</div>
       </div>
       <div class="slider-wrapper"><span class="slider-tick-label">06:00</span><input type="range" id="time-slider" min="12" max="36" step="1" value="30" aria-label="Time of day in 30 minute steps" /><span class="slider-tick-label">18:00</span></div>
       <div class="slider-ticks">
@@ -212,44 +215,58 @@
     </div>
 
     <div class="glass-panel map-legend">
-      <div class="legend-header"><span class="legend-title">Print key</span></div>
-      <div class="legend-item"><span class="legend-color legend-shadow"></span><span>Hatched shadow</span></div>
-      <div class="legend-item"><span class="legend-color legend-shaded-route"></span><span>Shade · solid</span></div>
-      <div class="legend-item"><span class="legend-color legend-sunlit-route"></span><span>Sun · dashed</span></div>
-      <div class="legend-item"><span class="legend-color legend-shortest-route"></span><span>Shortest</span></div>
+      <div class="legend-header"><span class="legend-title" data-i18n="key.title">Print key</span></div>
+      <div class="legend-item"><span class="legend-color legend-shadow"></span><span data-i18n="key.shadow">Hatched shadow</span></div>
+      <div class="legend-item"><span class="legend-color legend-shaded-route"></span><span data-i18n="key.shade">Shade · solid</span></div>
+      <div class="legend-item"><span class="legend-color legend-sunlit-route"></span><span data-i18n="key.sun">Sun · dashed</span></div>
+      <div class="legend-item"><span class="legend-color legend-shortest-route"></span><span data-i18n="key.shortest">Shortest</span></div>
       <div class="legend-divider"></div>
-      <div class="legend-item landmark-toggle" id="toggle-landmarks-btn"><span>📍</span><span>Landmarks (<span id="poi-count-badge">7</span>)</span></div>
+      <div class="legend-item landmark-toggle" id="toggle-landmarks-btn"><span>📍</span><span><span data-i18n="key.landmarks">Landmarks</span> (<span id="poi-count-badge">7</span>)</span></div>
     </div>
   </div>
 
   <div id="walk-modal" class="modal-overlay hidden" role="dialog" aria-label="Walk view">
     <div class="modal-box">
       <button class="modal-close" id="close-walk-modal">×</button>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;"><h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" id="walk-modal-title">🚶 Walk</h3><span class="badge" id="walk-modal-trip-code">dadu-clinic</span></div>
-      <div style="display:flex;gap:6px;margin-bottom:12px;"><button id="view-mode-walker" class="hud-tab-btn active" style="flex:1;">On street</button><button id="view-mode-watcher" class="hud-tab-btn" style="flex:1;">Watcher</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;"><h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" id="walk-modal-title" data-i18n="walk.title">🚶 Walk</h3><span class="badge" id="walk-modal-trip-code">dadu-clinic</span></div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;"><button id="view-mode-walker" class="hud-tab-btn active" style="flex:1;" data-i18n="walk.onstreet">On street</button><button id="view-mode-watcher" class="hud-tab-btn" style="flex:1;" data-i18n="walk.watcher">Watcher</button><button id="view-mode-chat" class="hud-tab-btn" style="flex:1;"><span data-i18n="walk.chat">Chat</span> (<span id="chat-count">0</span>)</button><button id="view-mode-group" class="hud-tab-btn" style="flex:1;" data-i18n="walk.group">Group</button></div>
       <div id="view-content-walker">
-        <label style="font-size:13px;font-weight:700;" for="walker-name-input">Walker name</label>
+        <label style="font-size:13px;font-weight:700;" for="walker-name-input" data-i18n="walk.name">Walker name</label>
         <input type="text" id="walker-name-input" value="Dadu" style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:16px;margin:6px 0 10px;" />
-        <div class="ticket-card"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;">NEXT HALT</span><h4 id="next-stop-name" style="font-family:var(--font-display);font-size:20px;">Stop 1 · rest bench</h4><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:13px;margin-top:4px;"><span>Shade <strong id="next-stop-shade">82%</strong></span><span>ETA <strong id="next-stop-eta">8 min</strong></span></div></div>
+        <div class="ticket-card"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="walk.next">NEXT HALT</span><h4 id="next-stop-name" style="font-family:var(--font-display);font-size:20px;">Stop 1 · rest bench</h4><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:13px;margin-top:4px;"><span>Shade <strong id="next-stop-shade">82%</strong></span><span>ETA <strong id="next-stop-eta">8 min</strong></span></div></div>
         <button id="btn-tap-checkin" class="btn-large-touch btn-touch-checkin"><span>◉ I’m at Stop 1</span></button>
         <div class="ticket-card" id="tap-shade-prompt" style="margin-top:10px;">
-          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;">AT THIS HALT — SUN OR SHADE?</div>
-          <p style="font-size:13px;margin-top:2px;">Your tap calibrates the map for the next walker.</p>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="walk.tapPrompt">AT THIS HALT — SUN OR SHADE?</div>
+          <p style="font-size:13px;margin-top:2px;" data-i18n="walk.tapSub">Your tap calibrates the map for the next walker.</p>
           <div style="display:flex;gap:8px;margin-top:8px;">
-            <button id="btn-tap-shaded" class="btn btn-glass-sm" style="flex:1;justify-content:center;">🌿 Shaded</button>
-            <button id="btn-tap-sunny" class="btn btn-glass-sm" style="flex:1;justify-content:center;">☀️ Sunny</button>
+            <button id="btn-tap-shaded" class="btn btn-glass-sm" style="flex:1;justify-content:center;" data-i18n="walk.shaded">🌿 Shaded</button>
+            <button id="btn-tap-sunny" class="btn btn-glass-sm" style="flex:1;justify-content:center;" data-i18n="walk.sunny">☀️ Sunny</button>
           </div>
           <div id="tap-thanks" style="font-size:13px;font-weight:700;margin-top:6px;"></div>
         </div>
         <button id="btn-tap-reached" class="btn-large-touch btn-touch-reached"><span>● We reached safely</span></button>
-        <div id="walk-behind-banner" class="hidden" style="margin-top:12px;background:var(--sun);border:2px solid var(--ink);padding:10px;"><div style="font-weight:800;">⚠ Delay detected</div><p id="walk-behind-text" style="font-size:14px;">Rina is 4 min behind.</p><div id="walk-repair-shortcut" style="font-size:13px;font-weight:700;">Take the shaded side lane.</div></div>
+        <div id="walk-behind-banner" class="hidden" style="margin-top:12px;background:var(--sun);border:2px solid var(--ink);padding:10px;"><div style="font-weight:800;" data-i18n="walk.behind">⚠ Delay detected</div><p id="walk-behind-text" style="font-size:14px;">Rina is 4 min behind.</p><div id="walk-repair-shortcut" style="font-size:13px;font-weight:700;">Take the shaded side lane.</div></div>
       </div>
       <div id="view-content-watcher" class="hidden">
         <svg class="empty-illus" viewBox="0 0 200 90" width="200" height="90" aria-hidden="true"><ellipse cx="100" cy="80" rx="70" ry="7" fill="#E8D6B5" stroke="#2A1F17" stroke-width="2"/><path d="M96 78 V44 M96 52 C80 52 74 40 74 40 M96 48 C112 48 118 36 118 36" stroke="#2A1F17" stroke-width="3" fill="none"/><ellipse cx="74" cy="36" rx="16" ry="9" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2"/><ellipse cx="118" cy="32" rx="18" ry="10" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2"/><ellipse cx="97" cy="26" rx="20" ry="11" fill="#5E8C6A" stroke="#2A1F17" stroke-width="2"/><circle cx="150" cy="22" r="10" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/></svg>
-        <div class="walker-status-word" id="watcher-status-title">Walking…</div>
+        <div class="walker-status-word" id="watcher-status-title" data-i18n="watcher.walking">Walking…</div>
         <div style="text-align:center;font-size:32px;" id="watcher-status-icon">🚶</div>
         <p id="watcher-status-desc" style="font-size:15px;text-align:center;margin-top:4px;">Departed 11:40 AM · expected arrival 11:55 AM.</p>
-        <div style="margin-top:12px;"><strong>Check-in timeline</strong><div id="watcher-timeline" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div></div>
+        <div style="margin-top:12px;"><strong data-i18n="watcher.timeline">Check-in timeline</strong><div id="watcher-timeline" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div></div>
+      </div>
+      <div id="view-content-chat" class="hidden">
+        <p style="font-size:13px;" data-i18n="chat.sub">Group room for this trip — “I’m behind, wait at the bench” lives here.</p>
+        <div id="chat-messages" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;"></div>
+        <form id="chat-form" style="display:flex;gap:6px;margin-top:8px;">
+          <input type="text" id="chat-input" maxlength="280" data-i18n-ph="chat.placeholder" placeholder="Message the group…" autocomplete="off" style="flex:1;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:15px;" />
+          <button type="submit" id="chat-send" class="btn btn-primary" style="padding:10px 14px;" data-i18n="chat.send">Send</button>
+        </form>
+      </div>
+      <div id="view-content-group" class="hidden">
+        <p style="font-size:13px;" data-i18n="group.sub">Live spots (shared only while tracking) + grass points.</p>
+        <div id="group-members" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
+        <strong style="font-size:14px;display:block;margin-top:10px;" data-i18n="group.points">🌱 Grass points</strong>
+        <div id="group-points" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
       </div>
     </div>
   </div>
@@ -257,32 +274,49 @@
   <div id="radar-modal" class="modal-overlay hidden" role="dialog" aria-label="Location cards">
     <div class="modal-box">
       <button class="modal-close" id="close-radar-modal">×</button>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;">📍 Pinned cards</h3>
-      <div style="display:flex;gap:6px;margin:10px 0;"><button id="radar-tab-view" class="hud-tab-btn active" style="flex:1;">Nearby (<span id="radar-card-count">0</span>)</button><button id="radar-tab-leave" class="hud-tab-btn" style="flex:1;">Leave one</button></div>
+      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="radar.title">📍 Pinned cards</h3>
+      <div style="display:flex;gap:6px;margin:10px 0;"><button id="radar-tab-view" class="hud-tab-btn active" style="flex:1;"><span data-i18n="radar.nearby">Nearby</span> (<span id="radar-card-count">0</span>)</button><button id="radar-tab-leave" class="hud-tab-btn" style="flex:1;" data-i18n="radar.leave">Leave one</button></div>
       <div id="radar-panel-view">
         <svg class="empty-illus" viewBox="0 0 200 70" width="180" height="64" aria-hidden="true"><rect x="30" y="18" width="44" height="34" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2.5"/><rect x="82" y="10" width="36" height="42" fill="#B8553A" stroke="#2A1F17" stroke-width="2.5"/><rect x="124" y="24" width="46" height="28" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/><line x1="10" y1="58" x2="190" y2="58" stroke="#2A1F17" stroke-width="2.5"/></svg>
-        <p style="font-size:13px;margin-bottom:8px;">Notes within 60 m appear at once; within 300 m show distance + bearing.</p>
+        <p style="font-size:13px;margin-bottom:8px;" data-i18n="radar.sub">Notes within 60 m appear at once; within 300 m show distance + bearing.</p>
         <div id="radar-cards-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
       </div>
       <div id="radar-panel-leave" class="hidden">
         <form id="leave-card-form" style="display:flex;flex-direction:column;gap:10px;">
-          <label style="font-size:13px;font-weight:700;">Category<select id="card-type-select" class="glass-select" style="width:100%;margin-top:4px;"><option value="tip">Shade tip / bench</option><option value="warning">Sun warning</option><option value="meetup">Meetup / chai</option><option value="note">Note</option></select></label>
-          <label style="font-size:13px;font-weight:700;">Message (140)<textarea id="card-text-input" maxlength="140" rows="3" placeholder="Deep shade along the colonnade; benches free." style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;font-size:15px;margin-top:4px;"></textarea></label>
-          <div class="ticket-card">🌿 Shade here now · <strong id="card-shade-stamp">82%</strong></div>
-          <button type="submit" id="btn-post-card" class="btn btn-primary" style="justify-content:center;"><span>Pin card</span></button>
+          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.motive">Motive</span><select id="card-type-select" class="glass-select" style="width:100%;margin-top:4px;"><option value="tip">Shade tip / bench</option><option value="warning">Sun warning</option><option value="meetup">Meetup / chai</option><option value="hike">Hike / trail note</option><option value="story">Story / photo</option><option value="note">Note</option></select></label>
+          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.message">Message (140)</span><textarea id="card-text-input" maxlength="140" rows="3" placeholder="Deep shade along the colonnade; benches free." style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;font-size:15px;margin-top:4px;"></textarea></label>
+          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.photo">Photo (optional)</span><input type="file" id="card-photo-input" accept="image/*" style="display:block;margin-top:4px;font-size:13px;" /></label>
+          <img id="card-photo-preview" alt="" style="display:none;max-width:100%;border:2px solid var(--ink);margin-top:4px;" />
+          <div class="ticket-card" style="font-size:13px;"><span data-i18n="card.pinnedAt">Pinned at</span> <strong id="card-coords-label">map centre</strong> · <span>🌿 Shade here now · <strong id="card-shade-stamp">82%</strong></span></div>
+          <button type="submit" id="btn-post-card" class="btn btn-primary" style="justify-content:center;"><span data-i18n="card.pin">Pin card</span></button>
         </form>
       </div>
     </div>
   </div>
 
-  <div id="qr-modal" class="modal-overlay hidden" role="dialog" aria-label="Trip QR">
-    <div class="modal-box" style="text-align:center;">
+  <div id="feed-modal" class="modal-overlay hidden" role="dialog" aria-label="Hike feed">
+    <div class="modal-box">
+      <button class="modal-close" id="close-feed-modal">×</button>
+      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="feed.title">🌱 Hike feed</h3>
+      <p style="font-size:13px;margin:4px 0 10px;" data-i18n="feed.sub">Announce a hike or join one. Finishers earn grass points.</p>
+      <div class="ticket-card">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="feed.announce">ANNOUNCE THIS TRIP</div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <input type="text" id="feed-title-input" maxlength="80" data-i18n-ph="feed.titlePh" placeholder="Sunset hike to the lake…" style="flex:1;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:15px;" />
+          <button id="feed-publish-btn" class="btn btn-primary" style="padding:10px 14px;" data-i18n="feed.post">Post</button>
+        </div>
+      </div>
+      <div id="feed-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
+  <div id="qr-modal" class="modal-overlay hidden" role="dialog" aria-label="Trip QR">    <div class="modal-box" style="text-align:center;">
       <button class="modal-close" id="close-qr-modal">×</button>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;">🎫 Trip ticket</h3>
-      <p style="font-size:13px;margin-bottom:10px;">Scan to join this trip or read its public cards.</p>
+      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="qr.title">🎫 Trip ticket</h3>
+      <p style="font-size:13px;margin-bottom:10px;" data-i18n="qr.sub">Scan to join this trip or read its public cards.</p>
       <div class="ticket-card" style="display:inline-block;"><img id="qr-image" src="" alt="Trip QR code" style="width:200px;height:200px;display:block;background:#fff;" /></div>
       <div style="font-family:var(--font-mono);font-size:12px;margin:10px 0;">/t/<span id="qr-url-text">dadu-clinic</span></div>
-      <button id="copy-qr-link-btn" class="btn btn-primary" style="width:100%;justify-content:center;"><span>Copy trip link</span></button>
+      <button id="copy-qr-link-btn" class="btn btn-primary" style="width:100%;justify-content:center;"><span data-i18n="qr.copy">Copy trip link</span></button>
     </div>
   </div>
 

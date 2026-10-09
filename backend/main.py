@@ -26,7 +26,7 @@ from backend.voice import synthesize_briefing_audio
 from backend.weather import get_weather_adjusted_budget, fetch_forecast_data
 from backend.plan_engine import parse_message_to_constraints, build_trip_plan
 from backend.repair_engine import detect_and_repair_stragglers
-from backend.config import KOLKATA_CENTER_LAT, KOLKATA_CENTER_LON
+from backend.config import KOLKATA_CENTER_LAT, KOLKATA_CENTER_LON, CARD_ALLOWED_TYPES, POINTS_CHECKIN, POINTS_COMPLETION
 from backend.db import (
     init_db,
     seed_demo_data,
@@ -37,6 +37,17 @@ from backend.db import (
     get_trip_checkins,
     record_observation,
     get_accuracy_summary,
+    post_trip_message,
+    get_trip_messages,
+    upsert_position,
+    get_positions,
+    award_points,
+    trip_leaderboard,
+    global_leaderboard,
+    unlock_story,
+    publish_trip,
+    join_trip,
+    get_feed,
     create_card,
     find_nearby_cards,
     report_and_hide_card,
@@ -109,13 +120,18 @@ class ObservationRequest(BaseModel):
 
 class CardCreateRequest(BaseModel):
     trip_code: Optional[str] = None
-    type: str  # note, warning, meetup, tip
+    type: str  # note, warning, meetup, tip, hike, story
     text: str
     lat: float
     lon: float
     visibility: Optional[str] = "public"  # public, group, addressed
     to_group: Optional[str] = None
     shade_at_creation: Optional[float] = None
+    photo: Optional[str] = None  # data-URL image, capped server-side
+
+class TripChatRequest(BaseModel):
+    walker: str
+    text: str
 
 
 # --------------------------------------------------------------------- Core Existing Endpoints
@@ -296,18 +312,37 @@ def api_checkin(code: str, req: CheckinRequest):
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found.")
     res = record_checkin(code, req.walker, req.stop_index)
+    try:
+        post_trip_message(code, req.walker, f"reached Stop {req.stop_index}", is_system=True)
+    except Exception:
+        pass
+    try:
+        res["grass_points"] = award_points(code, req.walker, POINTS_CHECKIN, f"checkin:{req.stop_index}")
+    except Exception:
+        pass
     return res
 
 
 @app.post("/api/trip/{code}/reached")
-def api_trip_reached(code: str):
+def api_trip_reached(code: str, walker: Optional[str] = Query(None)):
     """
     Fulfills Section 4, P1.2: Family 'We reached safely' ping.
+    Awards completion grass points when the walker is named.
     """
     ok = mark_trip_reached(code)
     if not ok:
         raise HTTPException(status_code=404, detail="Trip not found.")
-    return {"status": "reached", "trip_code": code, "reached_at": datetime.datetime.now().isoformat()}
+    out = {"status": "reached", "trip_code": code, "reached_at": datetime.datetime.now().isoformat()}
+    if walker:
+        try:
+            post_trip_message(code, walker, "reached safely — walk complete", is_system=True)
+        except Exception:
+            pass
+        try:
+            out["grass_points"] = award_points(code, walker, POINTS_COMPLETION, "completion")
+        except Exception:
+            pass
+    return out
 
 
 @app.post("/api/trip/{code}/observation")
@@ -375,11 +410,126 @@ def api_trip_repair(code: str, elapsed_min: Optional[float] = Query(None)):
     return repair_result
 
 
+@app.post("/api/trip/{code}/chat")
+def api_post_chat(code: str, req: TripChatRequest):
+    """Trip chat room: walkers and watchers exchange short messages (P1)."""
+    trip = get_trip(code)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    try:
+        return post_trip_message(code, req.walker, req.text)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/trip/{code}/chat")
+def api_get_chat(code: str, since_id: int = Query(0), limit: int = Query(50)):
+    """Poll trip chat messages newer than since_id ( ascending, capped)."""
+    trip = get_trip(code)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    return {"trip_code": code, "messages": get_trip_messages(code, since_id=since_id, limit=min(limit, 100))}
+
+
+class PositionRequest(BaseModel):
+    walker: str
+    lat: float
+    lon: float
+
+
+class PublishRequest(BaseModel):
+    title: str
+
+
+class JoinRequest(BaseModel):
+    walker: str
+
+
+class UnlockRequest(BaseModel):
+    walker: str
+    trip_code: Optional[str] = None
+    lat: float
+    lon: float
+
+
+@app.post("/api/trip/{code}/position")
+def api_post_position(code: str, req: PositionRequest):
+    """Opt-in live spot sharing for the group dashboard."""
+    if get_trip(code) is None:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    return upsert_position(code, req.walker, req.lat, req.lon)
+
+
+@app.get("/api/trip/{code}/positions")
+def api_get_positions(code: str):
+    """Where everyone is right now (stale flags included)."""
+    if get_trip(code) is None:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    return {"trip_code": code, "members": get_positions(code)}
+
+
+@app.get("/api/trip/{code}/points")
+def api_trip_points(code: str):
+    """Grass-points leaderboard for one trip."""
+    if get_trip(code) is None:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    return {"trip_code": code, "leaderboard": trip_leaderboard(code)}
+
+
+@app.get("/api/leaderboard")
+def api_leaderboard(limit: int = Query(10)):
+    """Top outdoor walkers across all trips."""
+    return {"leaderboard": global_leaderboard(min(limit, 50))}
+
+
+@app.post("/api/cards/{card_id}/unlock")
+def api_unlock_story(card_id: str, req: UnlockRequest):
+    """Unlock a geo-locked story at the spot; awards grass points once."""
+    try:
+        return unlock_story(card_id, req.walker, req.trip_code or "", req.lat, req.lon)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/trip/{code}/publish")
+def api_publish_trip(code: str, req: PublishRequest):
+    """Post this trip to the public feed so others can join."""
+    if get_trip(code) is None:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    try:
+        publish_trip(code, req.title)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"trip_code": code, "published": True, "title": req.title.strip()[:80]}
+
+
+@app.get("/api/feed")
+def api_feed(limit: int = Query(20)):
+    """Joinable public trips with distance category and food package."""
+    return {"trips": get_feed(min(limit, 50))}
+
+
+@app.post("/api/trip/{code}/join")
+def api_join_trip(code: str, req: JoinRequest):
+    """Join a trip as a walker (earns join grass points)."""
+    if get_trip(code) is None:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    try:
+        return join_trip(code, req.walker)
+    except (LookupError, ValueError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/api/cards")
 def api_create_card(req: CardCreateRequest):
     """
     Fulfills Section 4, P2: Leave a card with text cleaning and moderation.
+    Motives: tip, warning, meetup, note, hike, story. Optional photo.
     """
+    if req.type not in CARD_ALLOWED_TYPES:
+        raise HTTPException(status_code=422, detail=f"Unknown card type. Allowed: {', '.join(CARD_ALLOWED_TYPES)}")
     card = create_card(
         trip_code=req.trip_code,
         card_type=req.type,
@@ -389,6 +539,7 @@ def api_create_card(req: CardCreateRequest):
         visibility=req.visibility or "public",
         to_group=req.to_group,
         shade_at_creation=req.shade_at_creation,
+        photo=req.photo,
     )
     return card
 

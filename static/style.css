@@ -52,6 +52,8 @@ body {
 [data-theme="dark"] .badge-accent { color: #14231C; background: var(--shade); border-color: var(--ink); }
 .badge-solar { background: var(--sun); color: var(--ink); }
 .badge-simulated { background: var(--kash); border-style: dashed; font-size: 10px; text-transform: uppercase; }
+#lang-toggle { cursor: pointer; font-family: var(--font-bengali); min-height: 44px; min-width: 48px; font-size: 14px; }
+#lang-toggle:hover { background: var(--sun); }
 
 /* mode switcher = letterpress tabs */
 .mode-switcher-bar { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -245,6 +247,18 @@ body {
 .rest-stop-marker.approximate { background: var(--sun); }
 .card-pin { width: 32px; height: 32px; padding: 0; background: var(--sun); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; cursor: pointer; position: relative; flex-shrink: 0; user-select: none; }
 .walking-dot { width: 18px; height: 18px; border-radius: 50%; background: var(--sindoor); border: 3px solid var(--kash); outline: 2px solid var(--ink); }
+.gps-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--shade); border: 3px solid var(--kash); outline: 2px solid var(--ink); }
+.chat-msg { background: var(--kash); border: 2px solid var(--ink); padding: 8px 10px; font-size: 14px; box-shadow: var(--shadow-hard-sm); }
+.chat-msg .chat-who { font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.chat-msg.system { background: var(--sun); font-size: 13px; }
+.chat-msg.mine { outline: 2px solid var(--shade); outline-offset: -2px; }
+.card-photo-thumb { max-width: 100%; border: 2px solid var(--ink); margin-top: 6px; display: block; }
+.member-pin { min-width: 34px; height: 34px; padding: 0 6px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 rgba(42,31,23,.35); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; flex-shrink: 0; user-select: none; }
+.member-row { background: var(--kash); border: 2px solid var(--ink); padding: 8px 10px; font-size: 13px; display: flex; justify-content: space-between; gap: 8px; align-items: center; box-shadow: var(--shadow-hard-sm); }
+.points-row { font-family: var(--font-mono); font-size: 12px; display: flex; justify-content: space-between; background: var(--kash); border: 2px solid var(--ink); padding: 6px 10px; }
+.feed-card { background: var(--kash); border: 2px solid var(--ink); padding: 10px 12px; box-shadow: var(--shadow-hard-sm); }
+.feed-card h4 { font-family: var(--font-display); font-size: 17px; }
+.lock-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 700; border: 2px solid var(--ink); background: var(--kash); padding: 2px 6px; }
 .ink-ring { position: absolute; border: 3px solid var(--sun); border-radius: 50%; pointer-events: none; animation: ringOut 1.6s ease-out infinite; }
 @keyframes ringOut { from { width: 20px; height: 20px; opacity: 1; } to { width: 72px; height: 72px; opacity: 0; } }
 .maplibregl-popup-content { background: var(--kash) !important; border: 2px solid var(--ink) !important; border-radius: 3px !important; padding: 12px !important; color: var(--ink) !important; box-shadow: var(--shadow-hard) !important; font-family: var(--font-body) !important; }
