@@ -1,0 +1,37 @@
+{
+  "parser": "offline_deterministic",
+  "timestamp": "2026-10-09T17:26:59.608332",
+  "total": 30,
+  "passed": 30,
+  "failed": 0,
+  "accuracy_pct": 100.0,
+  "per_language": {
+    "bn": {
+      "total": 8,
+      "passed": 8,
+      "accuracy_pct": 100.0
+    },
+    "en": {
+      "total": 10,
+      "passed": 10,
+      "accuracy_pct": 100.0
+    },
+    "hi": {
+      "total": 6,
+      "passed": 6,
+      "accuracy_pct": 100.0
+    },
+    "mix": {
+      "total": 6,
+      "passed": 6,
+      "accuracy_pct": 100.0
+    }
+  },
+  "field_accuracy": {
+    "origin": 100.0,
+    "destination": 100.0,
+    "depart_time": 100.0,
+    "sun_tolerance": 100.0
+  },
+  "failures": []
+}

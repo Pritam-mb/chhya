@@ -29,55 +29,101 @@ DEFAULT_POIS = [
 ]
 
 
+# Romanized Bengali / Hindi vocabulary mapped to the English tokens the
+# deterministic parser already understands. Keeps the offline fallback usable
+# for the code-mixed requests the challenge asks about (F9).
+_ML_PLACES = {
+    r"\bbari\b": "home",
+    r"\bbadi\b": "home",
+    r"\bghor\b": "home",
+    r"\bghar\b": "home",
+    r"\bbasha\b": "home",
+    r"\bklinik\b": "clinic",
+    r"\bdaktar\b": "doctor",
+    r"\bdaktarkhana\b": "doctor",
+    r"\bhospital\b": "clinic",
+    r"\bbazaar\b": "market",
+    r"\bbazar\b": "market",
+    r"\bdukkan\b": "pharmacy",
+    r"\bdokan\b": "pharmacy",
+    r"\bmedicine\b": "pharmacy",
+    r"\bboi\b": "bookstore",
+    r"\bkitab\b": "bookstore",
+    r"\bchai\b": "tea",
+}
+
+
+def _normalize_multilingual(text: str) -> str:
+    """Rewrites common romanized Bengali/Hindi words into English tokens."""
+    t = text.lower().strip()
+    for pat, rep in _ML_PLACES.items():
+        t = re.sub(pat, rep, t)
+
+    # Time-of-day words
+    t = re.sub(r"\bdupure?\b|\bdopahar\w*\b", "noon", t)
+    t = re.sub(r"\bsubaha?\b|\bshokal\w*\b|\bsokal\w*\b|\bsubahe\b", "morning", t)
+    t = re.sub(r"\bbikal\w*\b|\bbikel\w*\b|\bshaam\w*\b|\bsham\b", "evening", t)
+
+    is_morning = bool(re.search(r"\bmorning\b", t))
+
+    def _hour(m: "re.Match") -> str:
+        h = int(m.group(1))
+        if is_morning and h <= 11:
+            return f"{h} am"
+        return f"{h} pm"
+
+    t = re.sub(r"\b(\d{1,2})\s*(?:tay|baje|bje|ta|te)\b", _hour, t)
+
+    # Speed words
+    t = re.sub(r"\bdhire\w*\b|\baste\w*\b|\bdheere\b|\baaram\w*\b", "slow", t)
+    t = re.sub(r"\bjaldi\w*\b|\btez\b|\bjhat\b", "fast", t)
+    return t
+
+
 def offline_parse_request(text: str) -> Dict[str, Any]:
     """
     Deterministic rule-based & regex semantic extractor that runs 100% offline
     on the host machine without internet, satisfying P0-4 and acceptance checks.
+    Understands English plus romanized Bengali/Hindi (see _normalize_multilingual).
     """
-    text_lower = text.lower().strip()
+    text_lower = _normalize_multilingual(text)
     
     # 1. Depart time extraction
     depart_time = "15:00"  # default
-    
-    # Check for "noon", "12 pm", "morning", "afternoon", "evening"
-    if re.search(r'\bnoon\b', text_lower) or "12 pm" in text_lower or "12pm" in text_lower:
+
+    def _fmt(hr: int, mn: int, meridiem: Optional[str]) -> Optional[str]:
+        if meridiem == "pm" and hr < 12:
+            hr += 12
+        elif meridiem == "am" and hr == 12:
+            hr = 0
+        if 0 <= hr <= 23 and 0 <= mn <= 59:
+            return f"{hr:02d}:{mn:02d}"
+        return None
+
+    # Explicit HH:MM (optionally followed by am/pm), then "H am/pm", then
+    # time-of-day words, then a bare-number last resort.
+    hhmm = re.search(r'\b(\d{1,2}):(\d{2})\s*(am|pm)?\b', text_lower)
+    hmer = re.search(r'\b(\d{1,2})\s*(am|pm)\b', text_lower)
+
+    if hhmm:
+        depart_time = _fmt(int(hhmm.group(1)), int(hhmm.group(2)), hhmm.group(3)) or depart_time
+    elif hmer:
+        depart_time = _fmt(int(hmer.group(1)), 0, hmer.group(2)) or depart_time
+    elif re.search(r'\bnoon\b', text_lower) or "12 pm" in text_lower or "12pm" in text_lower:
         depart_time = "12:00"
-    elif "morning" in text_lower or "9 am" in text_lower or "9am" in text_lower:
+    elif "morning" in text_lower:
         depart_time = "09:00"
-    elif "8 am" in text_lower or "8am" in text_lower:
-        depart_time = "08:00"
-    elif "10 am" in text_lower or "10am" in text_lower:
-        depart_time = "10:00"
-    elif "11 am" in text_lower or "11am" in text_lower:
-        depart_time = "11:00"
-    elif "1 pm" in text_lower or "1pm" in text_lower or "13:00" in text_lower:
-        depart_time = "13:00"
-    elif "2 pm" in text_lower or "2pm" in text_lower or "14:00" in text_lower:
-        depart_time = "14:00"
-    elif "3 pm" in text_lower or "3pm" in text_lower or "15:00" in text_lower or "around 3" in text_lower:
-        depart_time = "15:00"
-    elif "4 pm" in text_lower or "4pm" in text_lower or "16:00" in text_lower:
-        depart_time = "16:00"
-    elif "5 pm" in text_lower or "5pm" in text_lower or "17:00" in text_lower:
+    elif "evening" in text_lower:
         depart_time = "17:00"
     else:
-        # Regex for HH:MM or H pm / am
-        time_match = re.search(r'\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b', text_lower)
-        if time_match:
-            hr = int(time_match.group(1))
-            mn = int(time_match.group(2)) if time_match.group(2) else 0
-            meridiem = time_match.group(3)
-            if meridiem == "pm" and hr < 12:
-                hr += 12
-            elif meridiem == "am" and hr == 12:
-                hr = 0
-            if 0 <= hr <= 23:
-                depart_time = f"{hr:02d}:{mn:02d}"
+        time_match = re.search(r'\b(\d{1,2})\b', text_lower)
+        if time_match and "km/h" not in text_lower[max(0, time_match.start() - 8):time_match.end() + 8]:
+            depart_time = _fmt(int(time_match.group(1)), 0, None) or depart_time
 
     # 2. Sun tolerance extraction
     # Default to low if mentions dadu, elderly, baby, sensitive, or "can't take much sun"
     sun_tolerance = "medium"
-    if any(w in text_lower for w in ["can't take", "cant take", "no sun", "avoid sun", "sensitive", "elderly", "dadu", "grandpa", "skin", "patient", "low tolerance", "minimum sun", "shaded only"]):
+    if any(w in text_lower for w in ["can't take", "cant take", "no sun", "avoid sun", "sensitive", "elderly", "dadu", "grandpa", "skin", "patient", "low tolerance", "minimum sun", "shaded only", "shade", "shaded", "roddur", "rod", "dhup", "dhoop", "gorom", "shojjo", "shojjho", "sun se", "avoid", "chhaya", "chaya"]):
         sun_tolerance = "low"
     elif any(w in text_lower for w in ["fine with sun", "don't mind", "sun is fine", "quickest", "high tolerance", "fastest"]):
         sun_tolerance = "high"
@@ -104,8 +150,19 @@ def offline_parse_request(text: str) -> Dict[str, Any]:
     # Look for "from <origin> to <destination>" pattern
     from_to = re.search(r'from\s+([a-z0-9\s\']+?)\s+to\s+([a-z0-9\s\']+?)(?:\s+at|\s+around|\s+for|\s+he|\s+with|\s+because|$|\.)', text_lower)
     to_from = re.search(r'(?:walk|take|go|head|rush|stroll)(?:\s+[a-z\']+)*\s+to\s+([a-z0-9\s\']+?)\s+from\s+([a-z0-9\s\']+?)(?:\s+at|\s+around|\s+for|\s+he|\s+with|\s+because|$|\.)', text_lower)
-    
-    if from_to:
+    # Bengali/Hindi "X theke Y" / "X se Y" means "from X to Y"
+    ml_route = re.search(r"([a-z0-9\s\']+?)\s+(?:theke|se)\s+([a-z0-9\s\']+?)(?=\s+\d|\s+at|\s+around|\s+for|\s+morning|\s+noon|\s+evening|$|\.)", text_lower)
+    # Bengali/Hindi "dadu ke <dest> niye chalo" / "dadu ko <dest> le jao"
+    ml_dest = re.search(r"\b(?:ke|ko)\s+([a-z0-9\s\']+?)\s+(?:niye|le|nio|leke|chalo)\b", text_lower)
+
+    if ml_route:
+        origin = ml_route.group(1).strip()
+        destination = ml_route.group(2).strip()
+    elif ml_dest:
+        destination = ml_dest.group(1).strip()
+        if not origin:
+            origin = "home"
+    elif from_to:
         origin = from_to.group(1).strip()
         destination = from_to.group(2).strip()
     elif to_from:
@@ -113,7 +170,7 @@ def offline_parse_request(text: str) -> Dict[str, Any]:
         origin = to_from.group(2).strip()
     else:
         # Look for "take dadu to <dest>" or "walk to <dest>"
-        walk_to = re.search(r'(?:walk|take|go|head|bring|rush|stroll)(?:\s+[a-z\']+)*\s+to\s+([a-z0-9\s\']+?)(?:\s+at|\s+around|\s+for|\s+he|\s+with|\s+from|\s+because|$|\.)', text_lower)
+        walk_to = re.search(r'(?:walk|take|go|head|bring|rush|stroll)(?:\s+[a-z\']+)*\s+to\s+([a-z0-9\s\']+?)(?:\s+at|\s+around|\s+for|\s+he|\s+with|\s+from|\s+because|\s+\d|\s*,|\s+morning|\s+noon|\s+evening|$|\.)', text_lower)
         if walk_to:
             destination = walk_to.group(1).strip()
             # If from is specified later

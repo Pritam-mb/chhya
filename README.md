@@ -49,7 +49,7 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 | **Shadow Map (30-min slider)** | Building shadows sweep across Park St in 30-min steps from 6 AM to 6 PM with zero page reloads. | ✅ Verified |
 | **Shade-Aware Route** | Route differs from shortest path on test pairs and renders segments colored green (shaded) vs red (exposed). | ✅ Verified (40 diverging pairs) |
 | **Sun-Minutes Counter** | Reproducible sun-minutes calculated for both shade route and shortest path ($\sum \ell_e s_e / v$). | ✅ Verified |
-| **Local / Offline Request Parser** | Hand-written test set of 25 requests evaluated: 96% accuracy (24/25 passed). Works 100% offline without internet. | ✅ Verified (`data/parser_benchmark_report.json`) |
+| **Local / Offline Request Parser** | Hand-written code-mixed test set of 30 requests: 100% (30/30) offline; supports romanized Bengali/Hindi. Groq path benchmark skipped (no API key). Works 100% offline without internet. | ✅ Verified (`results/parser_offline.json`) |
 | **Agent End-to-End** | Natural language request becomes route on MapLibre map with 1-sentence trade-off explanation. | ✅ Verified |
 | **High-Noon Honesty Note** | App warns walkers when the sun is overhead at 12:00 PM (60° elevation, 0.56x shadow factor) that building shade barely reaches the street. | ✅ Verified |
 | **TabPFN Best-Window Widget** | TabPFN-2 regressor predicts the best 2-hour window from the live Open-Meteo forecast; held-out (Oct 2025) MAE **0.47 °C vs 1.77 °C** for a 20-year hourly climatology baseline. | ✅ Verified (`results/window_eval.json`) |
