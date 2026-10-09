@@ -14,6 +14,6 @@ export const chhayaAgent = new Agent({
     'user asks when to walk. If a place cannot be resolved, ask the user to clarify',
     'instead of guessing. Never invent distances or sun-minutes.',
   ].join(' '),
-  model: groq('llama-3.3-70b-versatile'),
+  model: groq(process.env.GROQ_MODEL || 'openai/gpt-oss-120b'),
   tools: { planRoute, bestWindow, getShadows, listPois },
 });

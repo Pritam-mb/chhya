@@ -17,6 +17,7 @@ class RoutingEngine:
         self.edges: List[Dict[str, Any]] = []
         self.adjacency: Dict[str, List[Dict[str, Any]]] = {}
         self.pois: List[Dict[str, Any]] = []
+        self._exposure_cache: Dict[str, Dict[str, float]] = {}
         self.load_graph(graph_path)
         self.load_pois(pois_path)
         
@@ -108,6 +109,11 @@ class RoutingEngine:
         Intersects all street edges with current building shadows in UTM space.
         Returns dict: { edge_id -> sunlit_share s_e in [0, 1] }
         """
+        b_min = 30 if dt_ist.minute >= 30 else 0
+        cache_key = f"{dt_ist.hour:02d}:{b_min:02d}"
+        if cache_key in self._exposure_cache:
+            return self._exposure_cache[cache_key]
+
         engine = get_shadow_engine()
         shadow_geojson = engine.compute_shadows(dt_ist)
         
@@ -157,6 +163,7 @@ class RoutingEngine:
                 print(f"TopologicalError during intersection: {err}")
                 exposure_map[e["edge_id"]] = 1.0
                 
+        self._exposure_cache[cache_key] = exposure_map
         return exposure_map
 
     def _dijkstra(self, start_node: str, end_node: str, exposure_map: Dict[str, float], k_penalty: float) -> Optional[List[Dict[str, Any]]]:

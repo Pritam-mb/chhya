@@ -73,8 +73,9 @@
 - **Benchmark Evaluation (`tests/parser_test_set.json`, `scripts/benchmark_parser.py`):**
   - Hand-written, code-mixed set of **30 requests** (10 English, 8 romanized Bengali, 6 romanized Hindi, 6 code-mixed).
   - **Offline deterministic parser: 30/30 (100%)** on origin, destination, depart-time and sun-tolerance; per-field scoring uses the real `RoutingEngine` resolver, so synonyms count as correct. Report: `results/parser_offline.json`.
-  - **Groq open-weight parser: not benchmarked** — no `GROQ_API_KEY` in the environment, so the run is honestly recorded as skipped (the script writes `results/parser_groq.json` only when a key is present).
-  - **Caveat:** this set was written by us and the parser was iterated against it, so 100% is a co-developed, not a held-out, number. It is published as-is for transparency.
+  - **Groq open-weight parser: 20/30 (66.7%)** with `openai/gpt-oss-120b` (`results/parser_groq.json`). The LLM slips on romanized time words (`baje` → am/pm), `dupahar/bikel` mappings, and sun-tolerance cues that the deterministic rules encode exactly — an honest and mildly surprising result (the small rule parser beats the hosted LLM on this niche set). `llama-3.3-70b-versatile` was retired from Groq's catalog, so the code now auto-selects from `GROQ_MODEL` (default `openai/gpt-oss-120b`, then `qwen/qwen3.8-27b`, then `openai/gpt-oss-20b`).
+  - **Anti-fake guard:** `score_parser(..., require_source_prefix="groq")` records the `parser_source` seen per request, so if every call silently fell back to offline the report is written with `status: model_unavailable` instead of claiming LLM accuracy.
+  - **Caveat:** this set was written by us and the offline parser was iterated against it, so its 100% is a co-developed, not a held-out, number. It is published as-is for transparency. The Groq number is a genuine, untuned run.
 
 ---
 
@@ -122,7 +123,7 @@
 | **P0-1** | Shadow map for demo area | **DONE** | Slider updates shadow polygons in 30-min steps from 6 AM to 6 PM via NOAA solar math & UTM Zone 45N extrusion. |
 | **P0-2** | Shade-aware route | **DONE** | 12 distinct POI pairs show route divergence with alternate shaded lane paths; segments colored green (shaded) and red (exposed). |
 | **P0-3** | Sun-minutes counter | **DONE** | Displays exact sun-minutes for both Shade Route and Shortest Path ($\sum \frac{\ell_e s_e}{v}$), reproducible from same inputs. |
-| **P0-4** | Request parsing by local open model | **DONE** | Offline deterministic parser scored 30/30 (100%) on a hand-written code-mixed set (`results/parser_offline.json`); Groq open-weight path benchmark skipped (no API key). Works 100% offline without internet. |
+| **P0-4** | Request parsing by local open model | **DONE** | Hand-written code-mixed set of 30: offline deterministic parser 30/30 (100%, `results/parser_offline.json`); Groq open-weight `gpt-oss-120b` 20/30 (66.7%, `results/parser_groq.json`). Works 100% offline without internet. |
 | **P0-5** | Agent end to end | **DONE** | Natural language request ("Walk dadu to the clinic around 3 pm, he can't take much sun.") directly maps to route with 1-sentence trade-off. |
 | **P0-6** | Valid submission | **IN PROGRESS** | Fresh repo started Oct 8; README, build log, and test suites created. |
 | **P1** | TabPFN Best Window Widget | **DONE** | TabPFN-2 trained on real Open-Meteo ERA5 archive (Oct 2006-2025); held-out Oct 2025 MAE **0.47 vs 1.77** climatology. Live Open-Meteo forecast at request time. See section 14. |
@@ -189,7 +190,7 @@ Open your browser at:
 ## 15. Workstream 5 Execution Log — AI Agent
 
 **What changed & Decisions Made:**
-- **Mastra agent (`agent/`)**: A real `@mastra/core` agent (`id: chhaya`) running open-weight `llama-3.3-70b-versatile` via `@ai-sdk/groq`, with four function-calling tools — `plan_route`, `best_window`, `get_shadows`, `list_pois` — that call the FastAPI endpoints. Typechecks clean (`npm run typecheck`) and the tools were smoke-tested against a live server (`home -> Belle Vue Clinic` @ 15:00).
+- **Mastra agent (`agent/`)**: A real `@mastra/core` agent (`id: chhaya`) running the open-weight Groq model `openai/gpt-oss-120b` via `@ai-sdk/groq` (model selectable with `GROQ_MODEL`), with four function-calling tools — `plan_route`, `best_window`, `get_shadows`, `list_pois` — that call the FastAPI endpoints. Typechecks clean (`npm run typecheck`) and the tools were smoke-tested against a live server (`home -> Belle Vue Clinic` @ 15:00).
 - **Python agent wrapper (`backend/agent.py`)**: The same tool set exposed in-process for the web app. Uses Groq tool-calling when `GROQ_API_KEY` is set; otherwise a **deterministic planner** so the app works out-of-the-box with no key (the offline claim applies to this path only). Each tool call is wrapped in retries and optional **Sentry** spans (`SENTRY_DSN`).
 - **Unknown places ask, don't guess**: The deterministic planner checks `resolve_location` first and returns a clarification reply listing known places, satisfying the workflow contract.
 - **Endpoints**: `/agent/chat` now runs the agent; new `/agent/tools` lists tool schemas. Existing response keys (`reply`, `parsed_parameters`, `route_data`) preserved for the UI.
@@ -198,3 +199,42 @@ Open your browser at:
 
 ## 16. Full Test Suite Status
 `python -m pytest -q` → **17 passed** (shadows, routing, parser, endpoints, best-window, agent).
+
+## 17. Workstream 7 Execution Log — UI Polish + Render Deploy
+
+**What changed & Decisions Made:**
+- **Honesty fix in the UI**: The best-window card hard-coded `MAE: 1.18 vs 1.94 Base` from the deleted synthetic version. It is now populated live from the `/window` response (`model_metrics.tabpfn_mae` / `baseline_mae`, id `mae-tag`), so the widget shows the real **0.47 vs 1.77 °C** and falls back to a neutral "climatology fallback" label if metrics are missing. The solar badge was already dynamic.
+- **`.env` actually loads**: `README` told users to `cp .env.example .env`, but nothing read it. Added `python-dotenv`, loaded at the top of `backend/main.py`; added the dependency to `requirements.txt`. `.env` was already git-ignored.
+- **Configurable server**: `python backend/main.py` now honours `HOST` / `PORT` / `RELOAD` env vars instead of hard-coded `0.0.0.0:8000` with reload.
+- **Render Blueprint (`render.yaml`)**: One free Python web service running `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`, health check `/health`, `PYTHON_VERSION=3.11.9`, and `sync: false` secret prompts for `GROQ_API_KEY` / `ELEVENLABS_API_KEY` / `SENTRY_DSN`. Optional keys — with none set the app uses the offline deterministic parser and browser speech. No DB/cron needed.
+- **`frontend/`** was already removed (WS5); the app keeps serving `static/` only.
+- **Smoke test** (`fastapi.testclient`, local): `/health` 200, `/` 200 (HTML), `/static/style.css` 200, `/agent/chat` 200 (parsed home→clinic @15:00, low), `/window` 200 → best window `06:30 - 08:30`, live `Open-Meteo forecast`, MAE `0.4699 vs 1.772`.
+- **Sentry tracing wired end-to-end**: `init_sentry()` (`backend/agent.py:41`) now installs the `StarletteIntegration` + `FastApiIntegration` so every HTTP route and uncaught error is captured, not just agent tool calls; it is initialised at startup in `backend/main.py`. Env: `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `SENTRY_TRACES_SAMPLE_RATE` (all in `.env`, git-ignored). `tests/conftest.py` blanks `SENTRY_DSN` so the suite never ships telemetry. Verified live: `/agent/chat` returns `"tracing": "sentry"` with a `plan_route` span.
+- **Remaining manual step**: click "New > Blueprint" in Render with this repo to mint the live URL, then paste it into the README badge line.
+
+## 18. Paper UI Restyle — "Hot Kolkata Afternoon, Printed on Paper" (`static/`)
+
+**What changed & Decisions Made:**
+- Visual pass only: no data, API, shadow, or routing logic touched. All 123 existing element IDs preserved so every `getElementById` binding keeps working.
+- **Tokens (`static/tokens.css`, new):** single source of truth — `--paper #F4E9D4`, `--paper-deep #E8D6B5`, `--kash #FBF7EE`, `--ink #2A1F17`, `--shade #1F4D3A`, `--sun #F2A900`, `--sun-hot #D2410D`, `--clay #B8553A`, `--sindoor #C8321E`, `--water #9DAE9A`; warm dark theme (`--paper #1E1A15`, `--ink #F1E6D0`, never blue-black). Depth from `4px 4px 0` hard offset shadows + borders only.
+- **Banned and removed:** violet/purple/indigo/blue/cyan glows, glassmorphism (`backdrop-filter` gone), blurred box-shadows, gradient meshes, Inter/Roboto (now Fraunces display / Instrument Sans body / IBM Plex Mono numerals / Hind Siliguri Bengali, Google Fonts with system fallback stacks).
+- **Map (`static/app.js`, visual sections only):** paper-toned basemap (Esri light-grey raster + paper wash, no blue water), clay extrusions modulated by live solar elevation, shadows as ink-green wash + canvas hatch `fill-pattern` (no blur), routes as paper casing + solid green shade layer + dashed vermilion sun layer (colour-blind safe: style encodes exposure too), ink dashed baseline, self-drawing route reveal, paper-tag pins with ink-ring proximity pulses.
+- **Signature elements:** SVG sundial with rotating gnomon shadow, sun-budget gauge (marigold→vermilion), hand-drawn start-time curve with "LEAVE AT" stamp, stop passport tickets, repair tickets, SVG-turbulence grain overlay, tram/banyan empty illustrations.
+- **Verification:** `node --check` clean; codebase grep for banned hexes/glow/blur clean; `pytest` 26 passed.
+
+## 19. Landmark Marker Fix (`static/app.js`, `static/style.css`)
+
+- **What broke:** paper-tag POI markers rendered as oversized boxes scattered across the map. Cause: markers were center-anchored while the CSS drew a tail below the box, so each tag sat on top of its coordinate with the tail pointing at nothing; variable-width boxes + hover-shift + tilt made it worse.
+- **Fix:** uniform 30px tags (32px rest/card pins), `anchor: "bottom", offset: [0, -6]` on POI/rest/card markers so tail tips land on the true coordinate; removed hover translate and card tilt. Endpoint circles and walking dot stay center-anchored (correct for dots).
+
+## 20. Full-Spec Audit (Oct 9)
+
+Audited the repo against the Section 1–15 specification. **Done:** P0 plan (parser, plan builder, weather budget, rest stops, sweep, share, no-window, noon note), P1 together (trips, check-ins, ping, watcher, repair + tests), P2 cards (CRUD, near/radar, report, QR, expiry, moderation), config, Render, Sentry, voice + fallback, 26 tests, paper UI (V6, V9, V12 partial). **Not done:** §1.1 de-hardcoding (fixed center/timezone/16m fallback, no area packs/settings/locale), §3.6+V10 observations, V7 printable ticket, P0.6 SerpApi, GPX/turnaround, Bengali toggle, V2/V3/V1/V4/V5/V8/V11, CREDITS + visible data credits, field test + post. Chose accuracy system first (original contribution the post needs numbers from).
+
+## 21. Shade Observations & Calibration — §3.6 + V10
+
+**What changed & Decisions Made:**
+- **Backend:** `POST /api/trip/{code}/observation` (walker, label, shade/sun, predicted, stop; server stamps solar elevation/azimuth + time; 404 on unknown trip) and `GET /api/accuracy` (tally + per-label table + corrections) in `backend/main.py`. `observations` table + label index in `backend/db.py:init_db`. Config: `OBS_MATCH_TOLERANCE 0.25`, `OBS_MIN_TAPS_FOR_CORRECTION 5`, `OBS_MAX_CORRECTION 0.40`. Correction = mean(observed − predicted), learned only after 5 taps, clamped to ±0.40, never shown without its count.
+- **Frontend:** walk modal gained "At this halt — sun or shade?" tap buttons auto-filled with the just-reached halt's label + predicted shade; HUD overview gained a field-check meter ("matched X of Y checkpoints" + top streets with counts); lanes with a learned correction render in calibrated ticket style (dashed ink outline + ✎ ±% · N taps tag).
+- **Failure logged honestly:** an empty edit to `api_trip_repair` accidentally merged its `def` line with the docstring → `IndentationError` on import; caught by `python -c "import backend.main"`, fixed, import clean.
+- **Verification:** manual API check (6 taps → 4 matched, correction −0.153 as hand-computed); test taps deleted from `data/chhaya.db` (0 rows remain). `tests/test_observations.py` (4 tests: tolerance, gating, clamp, endpoint 404/shape, hermetic tmp DB). Full suite: **30 passed**.

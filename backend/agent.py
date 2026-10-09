@@ -4,8 +4,9 @@ Chhaya agent wrapper.
 A small tool-calling agent that sits over the FastAPI services. It mirrors the
 Mastra tool set in `agent/` (plan_route, best_window, get_shadows, list_pois):
 
-  * If GROQ_API_KEY is set, the agent runs the open-weight Llama-3.3-70B model
-    with OpenAI-style function calling so the model picks the tools itself.
+  * If GROQ_API_KEY is set, the agent runs an open-weight Groq model
+    (gpt-oss-120b / qwen, override with GROQ_MODEL) with OpenAI-style function
+    calling so the model picks the tools itself.
   * Otherwise it runs a deterministic planner so the app still works offline
     (this is the honest offline path, not a local-model claim).
 
@@ -21,7 +22,7 @@ from typing import Dict, Any, List, Callable, Optional
 from backend.routing import get_routing_engine
 from backend.geo_shadows import get_shadow_engine
 from backend.best_window import get_window_model
-from backend.agent_parser import offline_parse_request
+from backend.agent_parser import offline_parse_request, GROQ_MODEL_CANDIDATES
 
 try:
     from groq import Groq
@@ -43,7 +44,16 @@ def init_sentry() -> bool:
     dsn = os.environ.get("SENTRY_DSN")
     if dsn and HAS_SENTRY and not _sentry_ready:
         try:
-            sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0, environment="chhaya")
+            from sentry_sdk.integrations.starlette import StarletteIntegration
+            from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+            sentry_sdk.init(
+                dsn=dsn,
+                traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
+                environment=os.environ.get("SENTRY_ENVIRONMENT", "chhaya"),
+                send_default_pii=False,
+                integrations=[StarletteIntegration(), FastApiIntegration()],
+            )
             _sentry_ready = True
         except Exception:
             _sentry_ready = False
@@ -150,74 +160,80 @@ class ChhayaAgent:
         key = os.environ.get("GROQ_API_KEY")
         if not key or not HAS_GROQ:
             return None
-        try:
-            client = Groq(api_key=key)
-            tools = [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": name,
-                        "description": spec["description"],
-                        "parameters": spec["parameters"],
-                    },
-                }
-                for name, spec in TOOL_REGISTRY.items()
-            ]
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are Chhaya, a Kolkata shade-aware walking agent. Use the tools "
-                        "to plan shaded routes and answer in one friendly sentence. If a place "
-                        "is unknown, ask the user to clarify instead of guessing."
-                    ),
+        client = Groq(api_key=key)
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "description": spec["description"],
+                    "parameters": spec["parameters"],
                 },
-                {"role": "user", "content": message},
-            ]
-            route_result = None
-            window_result = None
-            for _ in range(4):
-                resp = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    tools=tools,
-                    tool_choice="auto",
-                    temperature=0.2,
-                )
-                msg = resp.choices[0].message
-                if not msg.tool_calls:
-                    return {
-                        "reply": msg.content,
-                        "agent": "mastra-style groq tool-calling (llama-3.3-70b)",
-                        "route_data": route_result,
-                        "window_data": window_result,
-                    }
-                messages.append(msg)
-                for tc in msg.tool_calls:
-                    args = json.loads(tc.function.arguments or "{}")
-                    try:
-                        result = self.call_tool(tc.function.name, args)
-                    except Exception as e:
-                        result = {"error": str(e)}
-                    if tc.function.name == "plan_route":
-                        route_result = result
-                    elif tc.function.name == "best_window":
-                        window_result = result
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": tc.id,
-                            "content": json.dumps(result)[:4000],
-                        }
-                    )
-            return {
-                "reply": "I gathered the route data but hit my tool-step limit.",
-                "agent": "mastra-style groq tool-calling (llama-3.3-70b)",
-                "route_data": route_result,
-                "window_data": window_result,
             }
-        except Exception:
-            return None
+            for name, spec in TOOL_REGISTRY.items()
+        ]
+        for model_name in GROQ_MODEL_CANDIDATES:
+            try:
+                return self._tool_loop(client, model_name, tools, message)
+            except Exception as e:
+                print(f"Groq agent model {model_name} failed ({e}).")
+        return None
+
+    def _tool_loop(self, client, model_name: str, tools, message: str) -> Dict[str, Any]:
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are Chhaya, a Kolkata shade-aware walking agent. Use the tools "
+                    "to plan shaded routes and answer in one friendly sentence. If a place "
+                    "is unknown, ask the user to clarify instead of guessing."
+                ),
+            },
+            {"role": "user", "content": message},
+        ]
+        route_result = None
+        window_result = None
+        agent_label = f"mastra-style groq tool-calling ({model_name})"
+        for _ in range(4):
+            resp = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+                temperature=0.2,
+            )
+            msg = resp.choices[0].message
+            if not msg.tool_calls:
+                return {
+                    "reply": msg.content,
+                    "agent": agent_label,
+                    "route_data": route_result,
+                    "window_data": window_result,
+                }
+            messages.append(msg)
+            for tc in msg.tool_calls:
+                args = json.loads(tc.function.arguments or "{}")
+                try:
+                    result = self.call_tool(tc.function.name, args)
+                except Exception as e:
+                    result = {"error": str(e)}
+                if tc.function.name == "plan_route":
+                    route_result = result
+                elif tc.function.name == "best_window":
+                    window_result = result
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": json.dumps(result)[:4000],
+                    }
+                )
+        return {
+            "reply": "I gathered the route data but hit my tool-step limit.",
+            "agent": agent_label,
+            "route_data": route_result,
+            "window_data": window_result,
+        }
 
     # ------------------------------------------------------- deterministic
     def _deterministic(self, message: str) -> Dict[str, Any]:
@@ -279,8 +295,14 @@ class ChhayaAgent:
     def run(self, message: str) -> Dict[str, Any]:
         self.tool_calls = []
         result = self._llm_loop(message)
-        if result is None:
-            result = self._deterministic(message)
+        # The hosted model is a fine reasoner but weaker than the rule parser on
+        # romanized Bengali/Hindi. If it could not produce a route, let the
+        # deterministic planner try before accepting a clarification request.
+        if result is None or result.get("route_data") is None:
+            self.tool_calls = []
+            offline = self._deterministic(message)
+            if result is None or offline.get("route_data") is not None:
+                result = offline
         result["tool_calls"] = self.tool_calls
         result.setdefault("parsed_parameters", None)
         result.setdefault("route_data", None)

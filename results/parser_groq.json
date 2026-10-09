@@ -1,0 +1,205 @@
+{
+  "parser": "groq_open_weight",
+  "timestamp": "2026-10-09T22:56:22.758577",
+  "status": "ok",
+  "total": 30,
+  "passed": 20,
+  "failed": 10,
+  "accuracy_pct": 66.7,
+  "parser_sources": {
+    "groq:openai/gpt-oss-120b": 30
+  },
+  "per_language": {
+    "bn": {
+      "total": 8,
+      "passed": 5,
+      "accuracy_pct": 62.5
+    },
+    "en": {
+      "total": 10,
+      "passed": 8,
+      "accuracy_pct": 80.0
+    },
+    "hi": {
+      "total": 6,
+      "passed": 3,
+      "accuracy_pct": 50.0
+    },
+    "mix": {
+      "total": 6,
+      "passed": 4,
+      "accuracy_pct": 66.7
+    }
+  },
+  "field_accuracy": {
+    "origin": 100.0,
+    "destination": 96.7,
+    "depart_time": 80.0,
+    "sun_tolerance": 80.0
+  },
+  "failures": [
+    {
+      "id": "en03",
+      "lang": "en",
+      "query": "Walk from Flurys to Camac Square at noon, fast pace.",
+      "errors": [
+        "sun_tolerance: got 'low', expected 'medium'"
+      ],
+      "parsed": {
+        "origin": "flurys",
+        "destination": "camac square",
+        "depart_time": "12:00",
+        "sun_tolerance": "low",
+        "speed_kmh": 4.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "en04",
+      "lang": "en",
+      "query": "Need to go from Oxford Bookstore to Park Clinic around 4 pm, dadu walks slowly.",
+      "errors": [
+        "sun_tolerance: got 'medium', expected 'low'"
+      ],
+      "parsed": {
+        "origin": "oxford bookstore",
+        "destination": "park clinic",
+        "depart_time": "16:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 2.8,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "bn04",
+      "lang": "bn",
+      "query": "dadu ke park clinic niye chalo dupure",
+      "errors": [
+        "depart_time: got '13:00', expected '12:00'",
+        "sun_tolerance: got 'medium', expected 'low'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "park clinic",
+        "depart_time": "13:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "bn06",
+      "lang": "bn",
+      "query": "camac street theke russell street 3 tay, rod lagbe na",
+      "errors": [
+        "sun_tolerance: got 'medium', expected 'low'"
+      ],
+      "parsed": {
+        "origin": "camac street",
+        "destination": "russell street",
+        "depart_time": "15:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "bn07",
+      "lang": "bn",
+      "query": "dadu ke pharmacy niye jao bikel, gorom beshi",
+      "errors": [
+        "depart_time: got '15:00', expected '17:00'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "pharmacy",
+        "depart_time": "15:00",
+        "sun_tolerance": "low",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "hi02",
+      "lang": "hi",
+      "query": "ghar se bazar 5 baje jana hai",
+      "errors": [
+        "destination: got 'bazar', expected 'market'",
+        "depart_time: got '05:00', expected '17:00'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "bazar",
+        "depart_time": "05:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "hi04",
+      "lang": "hi",
+      "query": "dadu ko hospital dopahar le jao",
+      "errors": [
+        "depart_time: got '13:00', expected '12:00'",
+        "sun_tolerance: got 'medium', expected 'low'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "hospital",
+        "depart_time": "13:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "hi06",
+      "lang": "hi",
+      "query": "camac square se clinic subah 10 baje, aaram se",
+      "errors": [
+        "sun_tolerance: got 'low', expected 'medium'"
+      ],
+      "parsed": {
+        "origin": "camac square",
+        "destination": "clinic",
+        "depart_time": "10:00",
+        "sun_tolerance": "low",
+        "speed_kmh": 2.8,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "mx03",
+      "lang": "mix",
+      "query": "dadu ko oxford bookstore le jao 4 baje, he can't take much sun",
+      "errors": [
+        "depart_time: got '04:00', expected '16:00'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "oxford bookstore",
+        "depart_time": "04:00",
+        "sun_tolerance": "low",
+        "speed_kmh": 3.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    },
+    {
+      "id": "mx04",
+      "lang": "mix",
+      "query": "bari theke camac square jaldi chalo 1 baje",
+      "errors": [
+        "depart_time: got '01:00', expected '13:00'"
+      ],
+      "parsed": {
+        "origin": "home",
+        "destination": "camac square",
+        "depart_time": "01:00",
+        "sun_tolerance": "medium",
+        "speed_kmh": 4.0,
+        "parser_source": "groq:openai/gpt-oss-120b"
+      }
+    }
+  ]
+}

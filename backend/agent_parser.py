@@ -17,6 +17,14 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
+# Open-weight models available on Groq. `llama-3.3-70b-versatile` was retired;
+# gpt-oss and qwen are the current open-weight options (override with GROQ_MODEL).
+GROQ_MODEL_CANDIDATES = [
+    os.environ.get("GROQ_MODEL") or "openai/gpt-oss-120b",
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-20b",
+]
+
 
 DEFAULT_POIS = [
     {"name": "Dadu's Residence (Middleton Row)", "aliases": ["home", "dadu's home", "house", "residence", "middleton row", "dadu"]},
@@ -205,9 +213,7 @@ def parse_request_with_llm(text: str, api_key: Optional[str] = None) -> Dict[str
     groq_key = api_key or os.environ.get("GROQ_API_KEY")
     
     if groq_key and HAS_GROQ:
-        try:
-            client = Groq(api_key=groq_key)
-            prompt = f"""You are the Chhaya Kolkata Shade Routing Agent.
+        prompt = f"""You are the Chhaya Kolkata Shade Routing Agent.
 A user says: "{text}"
 
 Extract the walking parameters into valid JSON with this exact schema:
@@ -219,22 +225,25 @@ Extract the walking parameters into valid JSON with this exact schema:
   "speed_kmh": number (typically 2.8 to 4.5, default 3.0 for elderly or patients)
 }}
 Output ONLY valid JSON, no markdown formatting, no comments."""
-
-            chat_completion = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "You are a precise JSON extractor for Kolkata shade routing."},
-                    {"role": "user", "content": prompt}
-                ],
-                model="llama-3.3-70b-versatile",
-                temperature=0.1,
-                response_format={"type": "json_object"}
-            )
-            raw = chat_completion.choices[0].message.content
-            parsed = json.loads(raw)
-            parsed["parser_source"] = "groq_llama_3.3_70b"
-            return parsed
-        except Exception as e:
-            print(f"Groq parsing failed ({e}), falling back to offline deterministic parser.")
+        client = Groq(api_key=groq_key)
+        for model_name in GROQ_MODEL_CANDIDATES:
+            try:
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": "You are a precise JSON extractor for Kolkata shade routing."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    model=model_name,
+                    temperature=0.1,
+                    response_format={"type": "json_object"}
+                )
+                raw = chat_completion.choices[0].message.content
+                parsed = json.loads(raw)
+                parsed["parser_source"] = f"groq:{model_name}"
+                return parsed
+            except Exception as e:
+                print(f"Groq parsing with {model_name} failed ({e}).")
+        print("All Groq models failed, falling back to offline deterministic parser.")
 
     # Check local Ollama
     if HAS_HTTPX:

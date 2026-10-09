@@ -9,4 +9,7 @@ requests
 httpx
 groq
 sentry-sdk
+python-dotenv
 pytest
+qrcode
+pillow

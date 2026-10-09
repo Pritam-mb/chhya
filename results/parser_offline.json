@@ -1,10 +1,14 @@
 {
   "parser": "offline_deterministic",
-  "timestamp": "2026-10-09T17:26:59.608332",
+  "timestamp": "2026-10-09T22:55:16.102897",
+  "status": "ok",
   "total": 30,
   "passed": 30,
   "failed": 0,
   "accuracy_pct": 100.0,
+  "parser_sources": {
+    "offline_deterministic": 30
+  },
   "per_language": {
     "bn": {
       "total": 8,

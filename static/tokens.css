@@ -1,0 +1,42 @@
+/* Chhaya — Paper Tokens (single source of truth) */
+:root {
+  --paper: #F4E9D4;
+  --paper-deep: #E8D6B5;
+  --kash: #FBF7EE;
+  --ink: #2A1F17;
+  --shade: #1F4D3A;
+  --shade-soft: #5E8C6A;
+  --sun: #F2A900;
+  --sun-hot: #D2410D;
+  --clay: #B8553A;
+  --sindoor: #C8321E;
+  --water: #9DAE9A;
+  --line: #2A1F17;
+  --muted: #6B5D4D;
+  --card: #FBF7EE;
+  --shadow-hard: 4px 4px 0 var(--ink);
+  --shadow-hard-sm: 3px 3px 0 var(--ink);
+  --radius-paper: 3px;
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Instrument Sans", "Work Sans", "Hind Siliguri", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+  --font-bengali: "Hind Siliguri", "Noto Sans Bengali", "Instrument Sans", sans-serif;
+}
+[data-theme="dark"] {
+  --paper: #1E1A15;
+  --paper-deep: #2A231B;
+  --kash: #26201A;
+  --ink: #F1E6D0;
+  --line: #F1E6D0;
+  --muted: #B9A88F;
+  --card: #26201A;
+  --shade: #7FB08E;
+  --shade-soft: #5E8C6A;
+  --sun: #F2B73C;
+  --sun-hot: #E86A2C;
+  --clay: #D07A5A;
+  --sindoor: #E0523A;
+  --water: #7E9380;
+  --shadow-hard: 4px 4px 0 #0D0B09;
+  --shadow-hard-sm: 3px 3px 0 #0D0B09;
+}

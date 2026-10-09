@@ -2,7 +2,7 @@ import { chhayaAgent } from './agent.js';
 
 async function main() {
   if (!process.env.GROQ_API_KEY) {
-    console.error('Set GROQ_API_KEY to run the Mastra agent (open-weight llama-3.3-70b).');
+    console.error('Set GROQ_API_KEY to run the Mastra agent (open-weight gpt-oss-120b by default).');
     console.error('Without it, the FastAPI app falls back to its offline deterministic planner.');
     process.exit(1);
   }

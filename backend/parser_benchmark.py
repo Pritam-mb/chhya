@@ -47,12 +47,14 @@ def _score_case(engine, parsed: Dict[str, Any], expected: Dict[str, Any]) -> Lis
 
 
 def score_parser(parser_fn: Callable[[str], Dict[str, Any]], parser_name: str,
-                 test_set: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+                 test_set: List[Dict[str, Any]] = None,
+                 require_source_prefix: str = None) -> Dict[str, Any]:
     engine = get_routing_engine()
     test_set = test_set if test_set is not None else load_test_set()
 
     failures = []
     per_lang: Dict[str, Dict[str, int]] = {}
+    source_counts: Dict[str, int] = {}
     field_totals = {f: 0 for f in PLACE_FIELDS + SCALAR_FIELDS}
     field_hits = {f: 0 for f in PLACE_FIELDS + SCALAR_FIELDS}
     passed = 0
@@ -66,6 +68,9 @@ def score_parser(parser_fn: Callable[[str], Dict[str, Any]], parser_name: str,
             parsed = parser_fn(case["query"])
         except Exception as e:  # a parser crash is a failure, not a benchmark abort
             parsed = {"error": str(e)}
+
+        src = str(parsed.get("parser_source", "unknown"))
+        source_counts[src] = source_counts.get(src, 0) + 1
 
         errors = _score_case(engine, parsed, case["expected"])
 
@@ -88,13 +93,23 @@ def score_parser(parser_fn: Callable[[str], Dict[str, Any]], parser_name: str,
             bucket["passed"] += 1
 
     total = len(test_set)
+    genuine_cases = sum(
+        c for s, c in source_counts.items()
+        if require_source_prefix and s.startswith(require_source_prefix)
+    )
+    status = "ok"
+    if require_source_prefix and genuine_cases == 0:
+        status = "model_unavailable: every request fell back, accuracy below reflects the fallback"
+
     return {
         "parser": parser_name,
         "timestamp": datetime.datetime.now().isoformat(),
+        "status": status,
         "total": total,
         "passed": passed,
         "failed": len(failures),
         "accuracy_pct": round(passed / total * 100, 1) if total else 0.0,
+        "parser_sources": source_counts,
         "per_language": {
             lang: {**b, "accuracy_pct": round(b["passed"] / b["total"] * 100, 1)}
             for lang, b in sorted(per_lang.items())

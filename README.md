@@ -3,6 +3,8 @@
 > **Hacktoberfest Open-Source AI Challenge 2026** · Week 1 Theme: *Touch Grass*  
 > *Chhaya* (Bengali & Hindi for "shade") moves building shadows with the Kolkata sun and routes walkers through shade instead of the shortest path.
 
+**Live demo:** _coming online via Render — see [Deploy](#4-deploy-render) below._
+
 ---
 
 ## What It Is
@@ -21,24 +23,34 @@ The route glows **green where shaded** and **red where exposed**, accompanied by
 ## Quick Start
 
 ### 1. Prerequisites
-- Python 3.10+
-- Installed packages: `pip install fastapi uvicorn shapely pyproj tabpfn pandas numpy requests httpx`
+- Python 3.11+
+- Install dependencies: `pip install -r requirements.txt`
 
 ### 2. Environment Configuration (Optional)
 Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-Add your keys (the application runs 100% offline with zero keys if left blank):
+The file is loaded automatically at startup (`python-dotenv`). Add your keys — the application runs 100% offline with zero keys if left blank:
 - `GROQ_API_KEY`: For open-weight Llama-3.3-70b / Qwen parsing.
 - `ELEVENLABS_API_KEY`: For spoken audio briefings (browser speech synthesis is used as automatic fallback).
 
 ### 3. Run the App
 ```powershell
-pip install -r requirements.txt
 python backend/main.py
 ```
-Open **[http://localhost:8000](http://localhost:8000)** in your browser.
+Open **[http://localhost:8000](http://localhost:8000)** in your browser. Set `PORT`/`HOST` to override the defaults.
+
+### 4. Deploy (Render)
+A [Render Blueprint](https://render.com/docs/blueprint-spec) is committed as `render.yaml`:
+```bash
+# push the repo, then in Render: New > Blueprint > pick this repo
+```
+It provisions one free Python web service that runs
+`uvicorn backend.main:app --host 0.0.0.0 --port $PORT` and health-checks `/health`.
+`GROQ_API_KEY` / `ELEVENLABS_API_KEY` / `SENTRY_DSN` are prompted in the dashboard
+(`sync: false`) and are optional — with no keys the app uses the fully offline
+deterministic parser and browser speech fallback. No database or cron is required.
 
 ---
 
@@ -49,11 +61,11 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 | **Shadow Map (30-min slider)** | Building shadows sweep across Park St in 30-min steps from 6 AM to 6 PM with zero page reloads. | ✅ Verified |
 | **Shade-Aware Route** | Route differs from shortest path on test pairs and renders segments colored green (shaded) vs red (exposed). | ✅ Verified (40 diverging pairs) |
 | **Sun-Minutes Counter** | Reproducible sun-minutes calculated for both shade route and shortest path ($\sum \ell_e s_e / v$). | ✅ Verified |
-| **Local / Offline Request Parser** | Hand-written code-mixed test set of 30 requests: 100% (30/30) offline; supports romanized Bengali/Hindi. Groq path benchmark skipped (no API key). Works 100% offline without internet. | ✅ Verified (`results/parser_offline.json`) |
+| **Request Parser (offline + Groq)** | Hand-written code-mixed test set of 30 requests. Offline deterministic parser: **100% (30/30)**; Groq `openai/gpt-oss-120b`: **66.7% (20/30)**. The niche romanized Bengali/Hindi set is where the rule parser beats the LLM. Works 100% offline without internet. | ✅ Verified (`results/parser_offline.json`, `results/parser_groq.json`) |
 | **Agent End-to-End** | Natural language request becomes route on MapLibre map with 1-sentence trade-off explanation. | ✅ Verified |
 | **High-Noon Honesty Note** | App warns walkers when the sun is overhead at 12:00 PM (60° elevation, 0.56x shadow factor) that building shade barely reaches the street. | ✅ Verified |
 | **TabPFN Best-Window Widget** | TabPFN-2 regressor predicts the best 2-hour window from the live Open-Meteo forecast; held-out (Oct 2025) MAE **0.47 °C vs 1.77 °C** for a 20-year hourly climatology baseline. | ✅ Verified (`results/window_eval.json`) |
-| **AI Agent (Mastra + offline)** | Mastra agent (open-weight `llama-3.3-70b` tool-calling) calls the routing/shadow/window tools; a deterministic offline planner keeps the app working with no key. | ✅ Verified (`agent/`) |
+| **AI Agent (Mastra + offline)** | Mastra agent (open-weight Groq `openai/gpt-oss-120b` tool-calling) calls the routing/shadow/window tools; a deterministic offline planner keeps the app working with no key. | ✅ Verified (`agent/`) |
 | **Voice Briefing** | ElevenLabs neural speech briefing with Web Speech API fallback. | ✅ Verified |
 
 ---
@@ -89,8 +101,8 @@ with walking speed $v = 3.0\text{ km/h} = 50\text{ m/min}$.
 ---
 
 ## Open-Source AI Stack & Partner Categories
-- **Mastra (`agent/`):** Open-source agent framework. `chhayaAgent` runs `llama-3.3-70b-versatile` (via Groq, `@ai-sdk/groq`) with function-calling tools `plan_route`, `best_window`, `get_shadows`, `list_pois` that call the FastAPI endpoints. Run with `cd agent && npm install && GROQ_API_KEY=... npm run dev`.
-- **Groq API & Local Ollama:** Open-weight `llama-3.3-70b-versatile` / `qwen2.5` models for request parsing and agent reasoning.
+- **Mastra (`agent/`):** Open-source agent framework. `chhayaAgent` runs the open-weight Groq model `openai/gpt-oss-120b` (via `@ai-sdk/groq`; override with `GROQ_MODEL`) with function-calling tools `plan_route`, `best_window`, `get_shadows`, `list_pois` that call the FastAPI endpoints. Run with `cd agent && npm install && GROQ_API_KEY=... npm run dev`.
+- **Groq API & Local Ollama:** Open-weight `gpt-oss-120b` / `qwen3.8-27b` models (Groq) for request parsing and agent reasoning; local Ollama (`qwen2.5:7b`) is an optional fallback. Note: `llama-3.3-70b-versatile` was retired from Groq's catalog, so the code auto-selects from the current open-weight models.
 - **TabPFN:** Regressor for the best-window forecast vs a 20-year climatology baseline (MAE **0.47 vs 1.77 °C**). Uses the **TabPFN-2 weights** under the [Prior Labs License](https://github.com/PriorLabs/TabPFN/blob/main/LICENSE) (Apache-2.0 with attribution) — *Built with PriorLabs-TabPFN*.
 - **Open-Meteo:** Real ERA5 reanalysis archive (Oct 2006-2025) for training plus the live forecast API at request time.
 - **ElevenLabs:** Text-to-speech voice briefing ($100 partner category).

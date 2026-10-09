@@ -13,6 +13,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from backend.agent_parser import offline_parse_request, parse_request_with_llm  # noqa: E402
 from backend.parser_benchmark import load_test_set, score_parser  # noqa: E402
 
@@ -27,10 +33,13 @@ def main():
     _print_summary(offline)
 
     if os.environ.get("GROQ_API_KEY"):
-        groq = score_parser(parse_request_with_llm, "groq_open_weight", test_set)
+        groq = score_parser(parse_request_with_llm, "groq_open_weight", test_set,
+                            require_source_prefix="groq")
         with open("results/parser_groq.json", "w", encoding="utf-8") as f:
             json.dump(groq, f, indent=2, ensure_ascii=False)
         _print_summary(groq)
+        if groq["status"] != "ok":
+            print(f"  WARNING: {groq['status']}")
     else:
         print("\n[groq] skipped: GROQ_API_KEY not set. Set it and re-run to benchmark "
               "the open-weight model path (results/parser_groq.json).")
@@ -38,7 +47,8 @@ def main():
 
 def _print_summary(report):
     print(f"\n=== {report['parser']} === accuracy {report['accuracy_pct']}% "
-          f"({report['passed']}/{report['total']})")
+          f"({report['passed']}/{report['total']})  status={report.get('status')}")
+    print(f"  sources: {report.get('parser_sources')}")
     for lang, b in report["per_language"].items():
         print(f"  {lang:>4}: {b['passed']}/{b['total']}  ({b['accuracy_pct']}%)")
     for fail in report["failures"]:
