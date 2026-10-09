@@ -1,0 +1,10 @@
+{
+  "test_year": 2025,
+  "train_year_max": 2024,
+  "n_train_rows": 7657,
+  "n_test_rows": 403,
+  "baseline_mae": 1.7723,
+  "tabpfn_mae": 0.4699,
+  "model": "TabPFN-2 regressor",
+  "error_reduction_pct": 73.49
+}

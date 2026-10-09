@@ -7,4 +7,6 @@ pandas
 numpy
 requests
 httpx
+groq
+sentry-sdk
 pytest

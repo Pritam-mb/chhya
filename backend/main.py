@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from backend.geo_shadows import get_shadow_engine, calculate_solar_position
 from backend.routing import get_routing_engine
-from backend.agent_parser import parse_request_with_llm, offline_parse_request
+from backend.agent import get_agent, TOOL_REGISTRY
 from backend.best_window import get_window_model
 from backend.voice import synthesize_briefing_audio
 
@@ -104,59 +104,66 @@ def calculate_route(req: RouteRequest):
 @app.get("/window")
 def get_best_window(date: Optional[str] = Query(None, description="Date YYYY-MM-DD")):
     """
-    Fulfills F6 (TabPFN partner category): predicts best 2-hour daylight walking window
-    with MAE statistics compared against a 15-year climatology baseline.
+    Fulfills F6 (TabPFN partner category): predicts the best 2-hour daylight
+    walking window from the live Open-Meteo forecast, ranked by a TabPFN
+    feels-like prediction, with held-out MAE vs a climatology baseline.
     """
     model = get_window_model()
     target_date = date if date else datetime.datetime.now().strftime("%Y-%m-%d")
-    return model.get_best_windows(target_date)
+    try:
+        return model.predict_for_date(target_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date. Use YYYY-MM-DD.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Window forecast failed: {e}")
+
+
+@app.get("/agent/tools")
+def agent_tools():
+    """Lists the tools the agent can call (Mastra-compatible descriptions)."""
+    return {
+        "agent": "Chhaya",
+        "tools": [
+            {"name": name, "description": spec["description"], "parameters": spec["parameters"]}
+            for name, spec in TOOL_REGISTRY.items()
+        ],
+    }
 
 
 @app.post("/agent/chat")
 def agent_chat(req: ChatRequest):
     """
-    Full agent flow: natural-language request parsed by local open model (or Groq),
-    calling the routing tool, generating dual routes, sun-minutes counter, and trade-off.
+    Full agent flow: the agent parses a natural-language request, calls the
+    routing / best-window tools, and explains the trade-off in one sentence.
+    Uses a Groq open-weight tool-calling model when GROQ_API_KEY is set, and a
+    deterministic offline planner otherwise.
     """
-    # 1. Parse natural language
-    parsed = parse_request_with_llm(req.message)
-    
-    # Override if explicitly passed
-    if req.depart_time:
-        parsed["depart_time"] = req.depart_time
-    if req.sun_tolerance:
-        parsed["sun_tolerance"] = req.sun_tolerance
-        
-    # 2. Call routing tool
-    routing = get_routing_engine()
+    agent = get_agent()
     try:
-        route_result = routing.plan_route(
-            origin_query=parsed["origin"],
-            destination_query=parsed["destination"],
-            depart_time_str=parsed.get("depart_time", "15:00"),
-            sun_tolerance=parsed.get("sun_tolerance", "low"),
-            speed_kmh=parsed.get("speed_kmh", 3.0)
-        )
-        
-        # 3. Create succinct agent response
-        trade_off = route_result["trade_off_sentence"]
-        agent_reply = (
-            f"I've mapped the shaded route from {route_result['origin']['name']} to {route_result['destination']['name']} for {route_result['depart_time']} IST. "
-            f"{trade_off}"
-        )
-        
-        return {
-            "reply": agent_reply,
-            "parsed_parameters": parsed,
-            "route_data": route_result
-        }
+        result = agent.run(req.message)
     except Exception as e:
-        return {
-            "reply": f"I couldn't resolve the exact walking path: {str(e)}. Please check origin and destination.",
-            "parsed_parameters": parsed,
-            "route_data": None,
-            "error": str(e)
-        }
+        raise HTTPException(status_code=500, detail=f"Agent failed: {e}")
+
+    parsed = result.get("parsed_parameters")
+    if req.depart_time and parsed:
+        parsed["depart_time"] = req.depart_time
+        try:
+            result["route_data"] = agent.call_tool(
+                "plan_route",
+                {
+                    "origin": parsed["origin"],
+                    "destination": parsed["destination"],
+                    "depart_time": req.depart_time,
+                    "sun_tolerance": parsed.get("sun_tolerance", "low"),
+                    "speed_kmh": parsed.get("speed_kmh", 3.0),
+                },
+            )
+        except Exception:
+            pass
+    if req.sun_tolerance and parsed and not req.depart_time:
+        parsed["sun_tolerance"] = req.sun_tolerance
+
+    return result
 
 
 @app.post("/voice/briefing")

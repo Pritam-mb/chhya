@@ -1,0 +1,21 @@
+{
+  "name": "chhaya-agent",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Mastra agent that calls the Chhaya FastAPI routing / shadow / best-window tools",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/groq": "^4.0.59",
+    "@mastra/core": "^1.75.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

@@ -77,12 +77,8 @@
 ---
 
 ## 6. Best-Window Forecaster: TabPFN + Climatology (`backend/best_window.py`)
+> **Superseded in Workstream 4 (section 14).** The original version used `np.random` synthetic data and a hard-coded MAE. It is now trained on real Open-Meteo archive data with a computed, held-out MAE. The numbers below were placeholders and must not be quoted.
 - Fulfills requirement F6 (committed TabPFN partner category, $200 prize).
-- Built Kolkata historical October weather dataset (20 days of hourly solar irradiance, temperature, humidity, and heat index).
-- Evaluates 2-hour walking windows against a 15-year Climatology Baseline:
-  - **TabPFN MAE:** 1.18
-  - **Climatology Baseline MAE:** 1.94 (~39% error reduction)
-- Identifies **14:30 - 16:30** as the optimal afternoon shade window (1.7x shadow factor) and flags **11:30 - 13:30** as peak noon sun hazard.
 
 ---
 
@@ -127,7 +123,7 @@
 | **P0-4** | Request parsing by local open model | **DONE** | Evaluated on 25 hand-written requests: 96% accuracy (24/25 passed, 1 logged failure in `data/parser_benchmark_report.json`). Works 100% offline without internet. |
 | **P0-5** | Agent end to end | **DONE** | Natural language request ("Walk dadu to the clinic around 3 pm, he can't take much sun.") directly maps to route with 1-sentence trade-off. |
 | **P0-6** | Valid submission | **IN PROGRESS** | Fresh repo started Oct 8; README, build log, and test suites created. |
-| **P1** | TabPFN Best Window Widget | **DONE** | TabPFN trained on historical Kolkata October weather CSV with MAE 1.18 vs 1.94 Climatology baseline. |
+| **P1** | TabPFN Best Window Widget | **DONE** | TabPFN-2 trained on real Open-Meteo ERA5 archive (Oct 2006-2025); held-out Oct 2025 MAE **0.47 vs 1.77** climatology. Live Open-Meteo forecast at request time. See section 14. |
 | **P1** | Voice briefing | **DONE** | ElevenLabs TTS endpoint with automatic browser speech synthesis fallback. |
 | **P1** | Noon honesty note | **DONE** | UI and agent state when shade barely helps at solar noon (60° elevation). |
 
@@ -173,3 +169,30 @@ Open your browser at:
 - **Topological Errors (WS2)**: Replaced the bare `except Exception:` in `compute_edge_exposure` with `shapely.errors.TopologicalError` to avoid suppressing unrelated bugs while catching valid geometric failures.
 - **Tests (WS2)**: Upgraded all testing scripts to use `pytest` assertions. Discovered exactly 40 diverging shade routes at 3:00 PM, and selected the Belle Vue Clinic -> Oxford Bookstore route as the primary demo trip.
 - **Cleanup**: Purged the unused scaffolding in `frontend/` to strictly favor the active `static/` directory. Added `requirements.txt` to streamline local setup.
+
+---
+
+## 14. Workstream 4 Execution Log — Real Weather + TabPFN (Open-Meteo)
+
+**What changed & Decisions Made:**
+- **Replaced synthetic data**: The old `backend/best_window.py` generated weather with `np.random` and hard-coded `mae_tabpfn = 1.18`. Both were fake. Deleted.
+- **Real archive (`scripts/fetch_openmeteo.py`)**: Fetched **14,880 hourly rows** of real ERA5 reanalysis for Park Street, Kolkata (22.5510, 88.3530) covering every October from **2006 to 2025** from the Open-Meteo archive API. Saved to `data/openmeteo_kolkata_october.csv` (+ provenance in `data/openmeteo_source.json`). Committed so the repo runs from a fresh clone.
+- **Honest target choice**: First fit used `heat_index` as the target, but heat index is an algebraic function of temperature and humidity, so TabPFN reproduced the formula (MAE 0.066 °C) — circular and not credible. Switched the target to Open-Meteo `apparent_temperature` (feels-like) and withheld wind speed, so the model genuinely infers a non-trivial quantity.
+- **Held-out evaluation (`scripts/train_window_model.py`)**: Train = Oct 2006-2024, test = Oct 2025 (403 daylight rows). Baseline = hour-of-day climatology mean over the training years.
+  - **TabPFN-2 MAE: 0.470 °C** vs **climatology MAE: 1.772 °C** → **73.5% error reduction** (`results/window_eval.json`).
+- **Live forecast at request time**: `/window` now fetches the real Open-Meteo *forecast* for the target date (falls back to the *archive*, then to the stored hourly climatology if offline). Predictions are cached per date; first call ~3 s on CPU, then instant.
+- **TabPFN license verified**: v2 code + weights are the **Prior Labs License (Apache-2.0 + attribution)** and require the notice *"Built with PriorLabs-TabPFN"*. This is what we use (`ModelVersion.V2`). The newer v2.5/v2.6/v3 weights are non-commercial and are **not** used.
+- **Tests (`tests/test_best_window.py`)**: 5 tests confirm the archive is present, the eval JSON is real and beats baseline, the metrics are not hard-coded, and the offline fallback ranks 5 windows correctly.
+
+## 15. Workstream 5 Execution Log — AI Agent
+
+**What changed & Decisions Made:**
+- **Mastra agent (`agent/`)**: A real `@mastra/core` agent (`id: chhaya`) running open-weight `llama-3.3-70b-versatile` via `@ai-sdk/groq`, with four function-calling tools — `plan_route`, `best_window`, `get_shadows`, `list_pois` — that call the FastAPI endpoints. Typechecks clean (`npm run typecheck`) and the tools were smoke-tested against a live server (`home -> Belle Vue Clinic` @ 15:00).
+- **Python agent wrapper (`backend/agent.py`)**: The same tool set exposed in-process for the web app. Uses Groq tool-calling when `GROQ_API_KEY` is set; otherwise a **deterministic planner** so the app works out-of-the-box with no key (the offline claim applies to this path only). Each tool call is wrapped in retries and optional **Sentry** spans (`SENTRY_DSN`).
+- **Unknown places ask, don't guess**: The deterministic planner checks `resolve_location` first and returns a clarification reply listing known places, satisfying the workflow contract.
+- **Endpoints**: `/agent/chat` now runs the agent; new `/agent/tools` lists tool schemas. Existing response keys (`reply`, `parsed_parameters`, `route_data`) preserved for the UI.
+- **Tests (`tests/test_agent.py`)**: 5 tests cover the tool registry, a deterministic shaded route, the clarification path, `/agent/tools`, and `/agent/chat`.
+- **Cleanup**: Removed the leftover untracked `frontend/` scaffolding; the app keeps using `static/`.
+
+## 16. Full Test Suite Status
+`python -m pytest -q` → **17 passed** (shadows, routing, parser, endpoints, best-window, agent).

@@ -1,0 +1,43 @@
+{
+  "source": "Open-Meteo Historical Weather Archive (ERA5 reanalysis)",
+  "source_url": "https://archive-api.open-meteo.com/v1/archive",
+  "location": {
+    "name": "Park Street, Kolkata",
+    "lat": 22.551,
+    "lon": 88.353,
+    "timezone": "Asia/Kolkata"
+  },
+  "variables": [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "apparent_temperature",
+    "shortwave_radiation",
+    "cloud_cover",
+    "wind_speed_10m"
+  ],
+  "years": [
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "rows": 14880,
+  "fetched_at": "2026-10-09T16:48:57.128226",
+  "license": "Open-Meteo data is CC-BY-4.0. Attribution required."
+}

@@ -52,7 +52,8 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 | **Local / Offline Request Parser** | Hand-written test set of 25 requests evaluated: 96% accuracy (24/25 passed). Works 100% offline without internet. | ✅ Verified (`data/parser_benchmark_report.json`) |
 | **Agent End-to-End** | Natural language request becomes route on MapLibre map with 1-sentence trade-off explanation. | ✅ Verified |
 | **High-Noon Honesty Note** | App warns walkers when the sun is overhead at 12:00 PM (60° elevation, 0.56x shadow factor) that building shade barely reaches the street. | ✅ Verified |
-| **TabPFN Best-Window Widget** | TabPFN regressor predicts today's optimal 2-hour window against 15-year climatology baseline (MAE 1.18 vs 1.94). | ✅ Verified |
+| **TabPFN Best-Window Widget** | TabPFN-2 regressor predicts the best 2-hour window from the live Open-Meteo forecast; held-out (Oct 2025) MAE **0.47 °C vs 1.77 °C** for a 20-year hourly climatology baseline. | ✅ Verified (`results/window_eval.json`) |
+| **AI Agent (Mastra + offline)** | Mastra agent (open-weight `llama-3.3-70b` tool-calling) calls the routing/shadow/window tools; a deterministic offline planner keeps the app working with no key. | ✅ Verified (`agent/`) |
 | **Voice Briefing** | ElevenLabs neural speech briefing with Web Speech API fallback. | ✅ Verified |
 
 ---
@@ -64,6 +65,8 @@ As required by the challenge guidelines and scientific honesty:
 2. **Buildings only:** Tree canopy and fabric awnings are not modeled in this MVP release.
 3. **One Neighborhood:** The demo focuses on the dense urban fabric of **Park Street & Camac Street, Kolkata** (Mother Teresa Sarani, Middleton Row, Russell St, Belle Vue Clinic).
 4. **Flat ground assumption:** Elevation across Kolkata is approximately flat (~9m above sea level).
+5. **Best-window target:** The TabPFN model predicts Open-Meteo *apparent temperature* (feels-like) from the day's forecast weather (temperature, humidity, radiation, cloud; wind withheld). The baseline is an hour-of-day climatology from 2006-2025. The reported 0.47 °C MAE is a nowcast number using the same-day forecast as a feature, not a claim of day-ahead forecasting skill.
+6. **Agent model path:** The Mastra/Groq agent is a hosted open-weight model and needs `GROQ_API_KEY`; the offline claim applies only to the deterministic fallback planner, which is what the web app uses with no key.
 
 ---
 
@@ -86,10 +89,20 @@ with walking speed $v = 3.0\text{ km/h} = 50\text{ m/min}$.
 ---
 
 ## Open-Source AI Stack & Partner Categories
-- **Groq API & Local Ollama:** Open-weight `llama-3.3-70b-versatile` / `qwen-2.5-32b` models for privacy-preserving local extraction.
-- **TabPFN:** Prior-Data Fitted Network for weather discomfort regression vs climatology baseline ($200 partner category).
+- **Mastra (`agent/`):** Open-source agent framework. `chhayaAgent` runs `llama-3.3-70b-versatile` (via Groq, `@ai-sdk/groq`) with function-calling tools `plan_route`, `best_window`, `get_shadows`, `list_pois` that call the FastAPI endpoints. Run with `cd agent && npm install && GROQ_API_KEY=... npm run dev`.
+- **Groq API & Local Ollama:** Open-weight `llama-3.3-70b-versatile` / `qwen2.5` models for request parsing and agent reasoning.
+- **TabPFN:** Regressor for the best-window forecast vs a 20-year climatology baseline (MAE **0.47 vs 1.77 °C**). Uses the **TabPFN-2 weights** under the [Prior Labs License](https://github.com/PriorLabs/TabPFN/blob/main/LICENSE) (Apache-2.0 with attribution) — *Built with PriorLabs-TabPFN*.
+- **Open-Meteo:** Real ERA5 reanalysis archive (Oct 2006-2025) for training plus the live forecast API at request time.
 - **ElevenLabs:** Text-to-speech voice briefing ($100 partner category).
 - **MapLibre GL & OpenStreetMap:** Open GIS mapping stack with zero proprietary map lock-in.
+
+### Running the Mastra agent
+The Python app is fully self-contained and falls back to a deterministic planner with no key. To run the Mastra agent instead:
+```bash
+python backend/main.py            # terminal 1: API on :8000
+cd agent && npm install
+GROQ_API_KEY=... npm run dev "Walk dadu to the clinic around 3 pm, he can't take much sun"
+```
 
 ---
 
