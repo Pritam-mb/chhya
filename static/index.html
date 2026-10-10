@@ -3,324 +3,965 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ছায়া · Chhaya — Kolkata Shade Navigation</title>
-  <meta name="description" content="Chhaya projects building shadows with the Kolkata sun and routes walkers through shade.">
+  <title>ছায়া · Chhaya — Kolkata Shade Navigation &amp; Group Trail Platform</title>
+  <meta name="description" content="Chhaya projects building shadows with the Kolkata sun, routes walkers through shade, and coordinates live group hikes with geo-locked story drops and Grass Points.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=Instrument+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500;700&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/tokens.css?v=5">
-  <link rel="stylesheet" href="/static/style.css?v=5">
+  <link rel="stylesheet" href="/static/tokens.css?v=6">
+  <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 <body data-mode="family">
   <div class="grain-overlay" aria-hidden="true"></div>
+
   <div id="app-container">
+    <!-- Map Canvas (Active across Studio and Live Trail) -->
     <div id="map" role="application" aria-label="Paper-toned shade map of Park Street, Kolkata"></div>
 
-    <header class="glass-panel top-header">
+    <!-- Main Navigation Bar (Multi-Page Header) -->
+    <header class="app-top-nav glass-panel" role="banner">
       <div class="brand">
         <div class="brand-icon" aria-hidden="true">
-          <svg viewBox="0 0 44 44" width="30" height="30"><circle cx="22" cy="18" r="9" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/><g stroke="#2A1F17" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="4" x2="22" y2="9"/><line x1="22" y1="27" x2="22" y2="32"/><line x1="8" y1="18" x2="13" y2="18"/><line x1="31" y1="18" x2="36" y2="18"/><line x1="12" y1="8" x2="15" y2="11"/><line x1="29" y1="25" x2="32" y2="28"/></g><path d="M10 34 L30 34 L26 40 L14 40 Z" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2.5"/><line x1="22" y1="27" x2="33" y2="36" stroke="#2A1F17" stroke-width="2.5"/></svg>
+          <svg viewBox="0 0 44 44" width="28" height="28">
+            <circle cx="22" cy="18" r="9" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/>
+            <g stroke="#2A1F17" stroke-width="2.5" stroke-linecap="round">
+              <line x1="22" y1="4" x2="22" y2="9"/><line x1="22" y1="27" x2="22" y2="32"/>
+              <line x1="8" y1="18" x2="13" y2="18"/><line x1="31" y1="18" x2="36" y2="18"/>
+            </g>
+            <path d="M10 34 L30 34 L26 40 L14 40 Z" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2.5"/>
+          </svg>
         </div>
         <div class="brand-text">
           <h1 class="brand-title">ছায়া <span class="brand-en">Chhaya</span></h1>
-          <p class="brand-tagline" data-i18n="brand.tagline">Kolkata shade navigation · Park St corridor · printed for a hot afternoon</p>
+          <span class="brand-sub">Shade Navigation &amp; Group Trails</span>
         </div>
       </div>
-      <div class="header-badges">
-        <span class="badge badge-accent">TOUCH GRASS ’26</span>
-        <span class="badge badge-solar" id="solar-badge">Solar: 30.2° (1.7x)</span>
-        <span class="badge badge-simulated" id="demo-mode-tag" title="Seeded demonstration data" data-i18n="badge.simulated">Simulated demo</span>
+
+      <!-- Multi-Page View Navigation Tabs -->
+      <nav class="nav-pages-switcher" role="navigation" aria-label="Application Pages">
+        <button class="nav-page-tab active" id="tab-page-feed" data-page="feed">
+          <span class="tab-icon">🌱</span>
+          <span class="tab-label">Agenda &amp; Feed</span>
+          <span class="badge-counter" id="nav-feed-count">5</span>
+        </button>
+        <button class="nav-page-tab" id="tab-page-active-hike" data-page="active-hike">
+          <span class="tab-icon">🥾</span>
+          <span class="tab-label">Live Trail &amp; Dashboard</span>
+          <span class="badge-live-pulse" id="nav-live-pulse">LIVE</span>
+        </button>
+        <button class="nav-page-tab" id="tab-page-studio" data-page="studio">
+          <span class="tab-icon">🗺️</span>
+          <span class="tab-label">Shade Studio</span>
+        </button>
+        <button class="nav-page-tab" id="tab-page-passport" data-page="passport">
+          <span class="tab-icon">🌿</span>
+          <span class="tab-label">Grass Points</span>
+          <span class="badge-points-wallet" id="nav-wallet-pts">40 🌱</span>
+        </button>
+      </nav>
+
+      <!-- Right Utility Bar -->
+      <div class="nav-right-controls">
+        <button id="btn-open-register" class="badge badge-accent" title="Walker Registration &amp; Identity">
+          👤 <span id="nav-walker-name">Pritam</span>
+        </button>
+        <div class="header-badges">
+          <span class="badge badge-accent" id="active-group-pill">🏃 Park St Club</span>
+          <span class="badge badge-solar" id="solar-badge">Solar: 30.2°</span>
+        </div>
         <button id="lang-toggle" class="badge" data-i18n="lang.toggle" title="বাংলায় দেখুন">বাং</button>
-      </div>
-      <div class="mode-switcher-bar" role="tablist" aria-label="Walk mode">
-        <button class="mode-tab active" id="mode-tab-family" data-mode="family"><span>👵</span> <span data-i18n="mode.family">Family</span></button>
-        <button class="mode-tab club" id="mode-tab-club" data-mode="club"><span>🏃</span> <span data-i18n="mode.club">Club</span></button>
-        <button class="mode-tab trail" id="mode-tab-trail" data-mode="trail"><span>🥾</span> <span data-i18n="mode.trail">Trail</span></button>
-      </div>
-      <div class="top-action-bar">
-        <button id="open-radar-btn" class="btn-action-glass" data-i18n="action.here">📍 What’s Here?</button>
-        <button id="open-walk-btn" class="btn-action-glass" data-i18n="action.walk">🚶 Walk / Watch</button>
-        <button id="open-qr-btn" class="btn-action-glass" data-i18n="action.qr">🎫 Trip QR</button>
-        <button id="locate-btn" class="btn-action-glass" title="Use my location and track me" data-i18n="action.locate">◎ Locate</button>
-        <button id="open-feed-btn" class="btn-action-glass" title="Find or announce group hikes" data-i18n="action.feed">🌱 Feed</button>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
       </div>
     </header>
 
-    <div class="search-container">
-      <div class="glass-panel search-card">
-        <form id="agent-form" class="search-form">
-          <div class="input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="prompt-input" data-i18n-ph="search.placeholder" placeholder="Walk dadu to the clinic around 3 pm — he can’t take much sun…" autocomplete="off" aria-label="Describe your walk" />
+    <!-- =================================================================== -->
+    <!-- PAGE 1: SHADE STUDIO (Map, Solar Extrusion, Routing, ML Window)    -->
+    <!-- =================================================================== -->
+    <main id="page-studio" class="page-view" role="main">
+      <div class="studio-top-bar">
+        <div class="mode-switcher-bar" role="tablist" aria-label="Walk mode">
+          <button class="mode-tab active" id="mode-tab-family" data-mode="family"><span>👵</span> <span data-i18n="mode.family">Family</span></button>
+          <button class="mode-tab club" id="mode-tab-club" data-mode="club"><span>🏃</span> <span data-i18n="mode.club">Club</span></button>
+          <button class="mode-tab trail" id="mode-tab-trail" data-mode="trail"><span>🥾</span> <span data-i18n="mode.trail">Trail</span></button>
+        </div>
+      </div>
+
+      <div class="search-container" style="display:none;" aria-hidden="true">
+        <div class="glass-panel search-card">
+
+          <!-- Hidden compatibility form for background unit tests -->
+          <div style="display:none;" aria-hidden="true">
+            <form id="agent-form" class="search-form">
+              <input type="text" id="prompt-input" data-i18n-ph="search.placeholder" placeholder="" />
+              <button type="submit" id="submit-btn"><span data-i18n="search.go">Route in Shade</span></button>
+            </form>
+            <div class="quick-route-bar">
+              <select id="origin-select" class="glass-select"><option value="">Select origin…</option></select>
+              <select id="destination-select" class="glass-select"><option value="">Select destination…</option></select>
+              <button id="quick-route-btn" data-i18n="quick.go">Go</button>
+            </div>
+            <div class="preset-chips">
+              <span data-i18n="chips.label">Presets</span>
+              <button class="chip" data-mode="family" data-i18n="chip.family">👵 Dadu</button>
+              <button class="chip" data-mode="club" data-i18n="chip.club">🏃 Club</button>
+              <button class="chip" data-mode="family" data-i18n="chip.noon">☀️ Noon</button>
+              <button class="chip" data-mode="trail" data-i18n="chip.trail">🥾 Trail</button>
+            </div>
           </div>
-          <button type="submit" id="submit-btn" class="btn btn-primary"><span data-i18n="search.go">Route in Shade</span><span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+
+      <div id="noon-alert" class="glass-panel noon-alert hidden" role="alert">
+        <div class="alert-icon">☀️</div>
+        <div class="alert-content"><strong data-i18n="noon.title">High-noon honesty note</strong><p data-i18n="noon.body">At 12 PM the sun sits ~60° overhead. Shadows shrink to 0.56× height and barely reach the pavement. Leave before 10 AM or after 2:30 PM for deep shade.</p></div>
+        <button class="alert-close" id="noon-alert-close" aria-label="Dismiss alert">×</button>
+      </div>
+
+      <!-- Route HUD (Comparison & Statistics) -->
+      <aside id="route-hud" class="glass-panel route-hud hidden" aria-label="Route plan">
+        <div class="hud-header">
+          <div><span class="hud-label" id="hud-mode-label">Family Walk Plan</span><h2 id="hud-title" class="hud-title">Home → Clinic</h2></div>
+          <button id="hud-close" class="btn-icon" title="Close comparison">×</button>
+        </div>
+        <div class="hud-tabs" role="tablist">
+          <button class="hud-tab-btn active" id="tab-btn-overview" data-target="panel-overview" data-i18n="tabs.route">Route</button>
+          <button class="hud-tab-btn" id="tab-btn-sweep" data-target="panel-sweep" data-i18n="tabs.sweep">Start time</button>
+          <button class="hud-tab-btn" id="tab-btn-stops" data-target="panel-stops"><span data-i18n="tabs.stops">Stops</span> (<span id="stops-count-badge">0</span>)</button>
+          <button class="hud-tab-btn" id="tab-btn-repair" data-target="panel-repair" data-i18n="tabs.repair">Repair</button>
+          <button class="hud-tab-btn" id="tab-btn-share" data-target="panel-share" data-i18n="tabs.share">Share</button>
+        </div>
+
+        <div id="panel-overview" class="hud-tab-panel active">
+          <div id="weather-banner" class="tradeoff-box" style="margin-bottom:10px;">
+            <div><div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" id="weather-condition-text">Live Open-Meteo: 31°C · UV 4.2</div>
+            <div style="font-size:12px;" id="weather-advice-text">Standard budget active.</div></div>
+            <span class="badge" id="weather-budget-tag" style="margin-left:auto;align-self:center;">4.0m</span>
+          </div>
+          <div class="savings-card">
+            <span class="stamp" id="savings-stamp" data-i18n="stamp.saved">SHADE SAVED</span>
+            <div class="savings-value"><span id="saved-sun-mins">0.0</span><span class="savings-unit" data-i18n="savings.unit">sun-min saved</span></div>
+            <p id="savings-subtitle" class="savings-subtitle">Shielding you from the Kolkata afternoon</p>
+            <div class="gauge-wrap">
+              <svg id="sun-gauge" viewBox="0 0 200 112" role="img" aria-label="Sun budget gauge">
+                <path d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#2A1F17" stroke-width="3"/>
+                <g id="gauge-ticks" stroke="#2A1F17" stroke-width="2"></g>
+                <path id="gauge-fill" d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#1F4D3A" stroke-width="10" stroke-linecap="butt" stroke-dasharray="271" stroke-dashoffset="271"/>
+                <g><line id="gauge-needle" x1="100" y1="100" x2="100" y2="34" stroke="#C8321E" stroke-width="3.5"/><circle cx="100" cy="100" r="7" fill="#2A1F17"/></g>
+                <text x="100" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" id="gauge-label">0 / 4.0 sun-min</text>
+              </svg>
+              <div class="gauge-caption" data-i18n="gauge.caption">sun-budget · marigold → vermilion as exposure grows</div>
+            </div>
+          </div>
+
+          <div class="stat-grid" style="margin-top:10px;">
+            <div class="stat-box stat-shade active-path" id="shade-stat-box">
+              <div class="stat-box-header"><span class="status-dot dot-green"></span><strong data-i18n="stat.shaded">Shaded path</strong><span class="badge-mini badge-green" data-i18n="stat.pick">Pick</span></div>
+              <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shade-sun-mins" class="color-green">- mins</strong></div>
+              <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shade-total-mins">-</strong> min (<span id="shade-dist">-</span>)</span></div>
+              <div class="progress-bar-bg"><div id="shade-bar" class="progress-bar-fill fill-green" style="width:0%"></div></div>
+              <small id="shade-pct" class="stat-subtext">Calculating…</small>
+            </div>
+            <div class="stat-box stat-shortest" id="shortest-stat-box">
+              <div class="stat-box-header"><span class="status-dot dot-red"></span><strong data-i18n="stat.shortest">Shortest</strong><span class="badge-mini badge-direct" data-i18n="stat.direct">Direct</span></div>
+              <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shortest-sun-mins" class="color-red">- mins</strong></div>
+              <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shortest-total-mins">-</strong> min (<span id="shortest-dist">-</span>)</span></div>
+              <div class="progress-bar-bg"><div id="shortest-bar" class="progress-bar-fill fill-red" style="width:0%"></div></div>
+              <small id="shortest-pct" class="stat-subtext">Baseline…</small>
+            </div>
+          </div>
+
+          <!-- Continue on the displayed route -->
+          <div class="action-cta-card" style="margin-top:10px;">
+            <button id="btn-studio-start-hike" class="btn btn-primary" style="width:100%;justify-content:center;">
+              <span>▶ Continue on this route</span>
+            </button>
+            <p id="studio-continue-sub" style="font-size:11.5px;color:var(--muted);margin:6px 2px 0;">Pick shaded or direct above, then continue — your Live Trail opens with these exact lanes.</p>
+          </div>
+
+          <div class="tradeoff-box" style="margin-top:10px;"><div class="tradeoff-icon">✎</div><p id="tradeoff-text" class="tradeoff-text">Calculating trade-off…</p></div>
+          <div class="segments-card" style="margin-top:10px;">
+            <div class="segments-header"><span class="segments-title" data-i18n="legend.exposure">Lane-by-lane exposure · solid = shade, dashed = sun</span><span id="segment-count" class="badge-mini">0 lanes</span></div>
+            <div id="segments-list" class="segments-list"></div>
+          </div>
+          <div class="voice-card" style="margin-top:10px;">
+            <div class="voice-info">
+              <button id="voice-play-btn" class="btn btn-voice"><span id="voice-btn-text" data-i18n="voice.listen">▶ Listen briefing</span></button>
+              <span class="voice-provider" id="voice-provider-tag">Voice briefing</span>
+            </div>
+            <div id="voice-wave" class="voice-wave hidden"><span></span><span></span><span></span><span></span><span></span></div>
+            <p id="voice-script" class="voice-script">“Leave at 3 PM via the shaded Middleton Row lane…”</p>
+          </div>
+          <div class="ticket-card" id="accuracy-meter" style="margin-top:10px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="meter.title">FIELD CHECK · PREDICTED vs SEEN</div>
+            <div id="accuracy-tally" style="font-size:13px;margin-top:4px;">No taps yet — be the first to tap sun/shade on the walk.</div>
+            <div id="accuracy-streets" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
+        </div>
+
+        <div id="panel-sweep" class="hud-tab-panel hidden">
+          <div class="sweep-container">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><strong style="font-family:var(--font-display);font-size:16px;" data-i18n="sweep.title">Best time to leave</strong><span id="sweep-best-badge">Best: 11:40</span></div>
+            <p style="font-size:13px;" data-i18n="sweep.sub">Sun exposure every 10 min across the window. Best start gets the stamp.</p>
+            <svg id="sweep-curve-svg" viewBox="0 0 320 90" preserveAspectRatio="none" aria-label="Exposure curve"></svg>
+            <div class="sweep-bars" id="sweep-bars-container"></div>
+            <div id="sweep-budget-warning" class="hidden" style="background:var(--sun);border:2px solid var(--ink);padding:8px;font-size:12.5px;font-weight:700;">⚠ No comfortable window today — try later, or take a ride.<p id="sweep-warning-subtext" style="font-weight:400;">All slots exceed the sun budget.</p></div>
+          </div>
+        </div>
+
+        <div id="panel-stops" class="hud-tab-panel hidden">
+          <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="stops.title">Stop passport</strong>
+          <p style="font-size:13px;" data-i18n="stops.sub">A ticket per halt. Stamped when your feet reach it.</p>
+          <div id="rest-stops-list" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;"></div>
+        </div>
+
+        <div id="panel-repair" class="hud-tab-panel hidden">
+          <div id="repair-alert-box" class="repair-banner"><div class="repair-banner-title">⚠ <span id="repair-status-title">Watching pace</span></div><p id="repair-status-desc" style="font-size:13px;">If a walker lags &gt; 3 min, ranked fixes land here.</p></div>
+          <strong style="font-size:14px;" data-i18n="repair.title">Regroup tickets</strong>
+          <div id="repair-cards-list" style="margin-top:4px;"></div>
+          <div class="ticket-card"><div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="repair.groupAlert">GROUP ALERT · COPYABLE</div><p id="repair-copy-text" style="font-size:13px;margin-top:4px;">Group walking together.</p><button id="copy-repair-btn" class="btn btn-glass-sm" style="margin-top:8px;width:100%;" data-i18n="repair.copy">Copy group alert</button></div>
+        </div>
+
+        <div id="panel-share" class="hud-tab-panel hidden">
+          <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="share.title">Trip chit</strong>
+          <div class="ticket-card"><p id="share-plan-text" style="font-size:14px;line-height:1.5;">Generating briefing…</p></div>
+          <div style="display:flex;gap:8px;margin-top:10px;"><button id="copy-share-btn" class="btn btn-primary" style="flex:1;justify-content:center;"><span data-i18n="share.copy">Copy message</span></button><button id="open-trip-qr-direct" class="btn btn-glass-sm" style="flex:1;" data-i18n="share.qr">View QR</button></div>
+          <div style="margin-top:8px;font-family:var(--font-mono);font-size:12px;"><span data-i18n="share.code">Trip code ·</span> <strong id="share-trip-code">dadu-clinic</strong></div>
+        </div>
+      </aside>
+
+      <!-- Best Walking Window Widget (TabPFN) -->
+      <div class="glass-panel window-widget" aria-label="Best walking window">
+        <div class="widget-header"><div><span class="widget-badge">TabPFN · ML</span><h3 class="widget-title" data-i18n="widget.title">Best walking window</h3></div><span class="mae-tag" id="mae-tag">MAE …</span></div>
+        <div class="window-recommendation" role="button" tabindex="0"><div class="window-time" id="best-window-time">14:30 – 16:30</div><div class="window-reason" id="best-window-reason">Afternoon shade · long building shadows</div></div>
+        <div class="window-list" id="window-list"></div>
+        <div class="window-hint" data-i18n="widget.hint">Tap a window to preview its shadows</div>
+      </div>
+
+      <!-- Sundial & Time Slider Panel -->
+      <div class="glass-panel slider-container docked" id="slider-panel">
+        <div class="slider-header">
+          <div class="slider-controls">
+            <button id="play-btn" class="btn-play" title="Sweep shadows"><svg id="play-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+            <span class="slider-title" data-i18n="slider.title">Sundial · shadow sweep</span>
+          </div>
+          <div class="current-time-display"><span id="time-display">15:00</span><small>IST</small></div>
+        </div>
+        <div class="sundial-row">
+          <svg id="sundial" viewBox="0 0 120 70" width="120" height="70" role="img" aria-label="Sundial dial">
+            <path d="M8 62 A52 52 0 0 1 112 62" fill="none" stroke="#2A1F17" stroke-width="2.5"/>
+            <g font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" fill="#2A1F17" text-anchor="middle">
+              <text x="10" y="66">6</text><text x="32" y="30">9</text><text x="60" y="16">12</text><text x="88" y="30">15</text><text x="110" y="66">18</text>
+            </g>
+            <g id="sundial-ticks" stroke="#2A1F17" stroke-width="1.6"></g>
+            <line id="gnomon-shadow" x1="60" y1="60" x2="60" y2="22" stroke="#1F4D3A" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="5" fill="#C8321E" stroke="#2A1F17" stroke-width="2"/>
+          </svg>
+          <div class="sundial-caption" data-i18n="slider.caption">gnomon shadow follows the slider.<br>mono numerals · IST</div>
+        </div>
+        <div class="slider-wrapper"><span class="slider-tick-label">06:00</span><input type="range" id="time-slider" min="12" max="36" step="1" value="30" aria-label="Time of day in 30 minute steps" /><span class="slider-tick-label">18:00</span></div>
+        <div class="slider-ticks">
+          <span class="tick-btn" data-step="12">6 AM</span><span class="tick-btn" data-step="16">8 AM</span><span class="tick-btn" data-step="18">9 AM</span><span class="tick-btn tick-highlight" data-step="24">12 PM</span><span class="tick-btn" data-step="28">2 PM</span><span class="tick-btn tick-highlight tick-active" data-step="30">3 PM ★</span><span class="tick-btn" data-step="32">4 PM</span><span class="tick-btn" data-step="36">6 PM</span>
+        </div>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="glass-panel map-legend">
+        <div class="legend-header"><span class="legend-title" data-i18n="key.title">Print key</span></div>
+        <div class="legend-item"><span class="legend-color legend-shadow"></span><span data-i18n="key.shadow">Hatched shadow</span></div>
+        <div class="legend-item"><span class="legend-color legend-shaded-route"></span><span data-i18n="key.shade">Shade · solid</span></div>
+        <div class="legend-item"><span class="legend-color legend-sunlit-route"></span><span data-i18n="key.sun">Sun · dashed</span></div>
+        <div class="legend-item"><span class="legend-color legend-shortest-route"></span><span data-i18n="key.shortest">Shortest</span></div>
+        <div class="legend-divider"></div>
+        <div class="legend-item landmark-toggle" id="toggle-landmarks-btn"><span>📍</span><span><span data-i18n="key.landmarks">Landmarks</span> (<span id="poi-count-badge">7</span>)</span></div>
+      </div>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- PAGE 2: ACTIVE GROUP TRAIL & LIVE DASHBOARD                        -->
+    <!-- (Side Dashboard: Individualized Group Chat, Member Radar, Stories) -->
+    <!-- =================================================================== -->
+    <section id="page-active-hike" class="page-view" role="region" aria-label="Active Hike Trail &amp; Dashboard">
+      <!-- Live Side Dashboard -->
+      <aside class="trail-side-dashboard glass-panel" id="trail-dashboard-panel">
+        <!-- Group Switcher & Live Session Header -->
+        <div class="dashboard-header">
+          <div class="group-select-wrap">
+            <label for="group-hike-select" class="group-select-label">ACTIVE HIKE GROUP</label>
+            <select id="group-hike-select" class="glass-select group-dropdown">
+              <option value="parkst-club">🏃 Park Street Sun-Smart Trail Club</option>
+              <option value="dadu-clinic">👵 Dadu's Morning Clinic Walk</option>
+              <option value="heritage-food-trail">🍜 Bow Barracks Heritage Food Trail</option>
+              <option value="sarobar-lake-trek">🌿 Rabindra Sarobar Canopy Trek</option>
+              <option value="collegest-trail">📚 College Street Boi Para Passage</option>
+            </select>
+          </div>
+          <div class="group-status-pill">
+            <span class="pulse-dot"></span>
+            <span id="group-live-summary">5 Walkers · 74% Shade</span>
+          </div>
+        </div>
+
+        <!-- Current Route Summary Card (Always Visible) -->
+        <div id="trail-route-summary-box" class="trail-summary-card">
+          <div class="summary-top-row">
+            <div class="summary-route-name" id="summary-route-title">Park Street Sun-Smart Heritage Trail</div>
+            <span class="badge badge-accent" id="summary-shade-badge">74% Shade</span>
+          </div>
+          <div class="summary-endpoints" id="summary-route-endpoints">Flurys Tea Room → Camac Street Mall &amp; Offices</div>
+          <div class="summary-stats-grid">
+            <div class="summary-stat-cell">
+              <span class="stat-cell-label">DISTANCE</span>
+              <strong class="stat-cell-val" id="summary-dist-val">1.2 km</strong>
+            </div>
+            <div class="summary-stat-cell">
+              <span class="stat-cell-label">SUN EXPOSURE</span>
+              <strong class="stat-cell-val" id="summary-sun-val">3.5 mins</strong>
+            </div>
+            <div class="summary-stat-cell">
+              <span class="stat-cell-label">EST. WALK</span>
+              <strong class="stat-cell-val" id="summary-duration-val">18 mins</strong>
+            </div>
+            <div class="summary-stat-cell">
+              <span class="stat-cell-label">COMFORT / UV</span>
+              <strong class="stat-cell-val" id="summary-uv-val">UV 4.2 · Mild</strong>
+            </div>
+          </div>
+          <!-- Enroll by name row -->
+          <div id="trail-enroll-row" style="margin-top:10px;display:flex;gap:6px;align-items:center;">
+            <input type="text" id="trail-enroll-name" placeholder="Your name to enroll…" maxlength="40"
+              style="flex:1;font-size:12.5px;padding:7px 10px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper);font-family:var(--font-body);" />
+            <button id="btn-trail-enroll" class="btn btn-primary" style="padding:7px 14px;font-size:12.5px;">
+              <span>🥾 Enroll</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Sub-Tabs -->
+        <div class="dashboard-sub-nav" role="tablist">
+          <button class="sub-tab-btn active" id="subtab-radar" data-tab="tab-radar">
+            <span>🏃 Radar</span>
+          </button>
+          <button class="sub-tab-btn" id="subtab-directions" data-tab="tab-directions">
+            <span>🧭 Route</span>
+          </button>
+          <button class="sub-tab-btn" id="subtab-chat" data-tab="tab-chat">
+            <span>💬 Chat</span>
+            <span class="subtab-badge" id="chat-badge-count">4</span>
+          </button>
+          <button class="sub-tab-btn" id="subtab-drops" data-tab="tab-drops">
+            <span>📸 Stories</span>
+            <span class="subtab-badge" id="drops-badge-count">2</span>
+          </button>
+          <button class="sub-tab-btn" id="subtab-stops" data-tab="tab-stops">
+            <span>🛑 Stops</span>
+          </button>
+          <button class="sub-tab-btn" id="subtab-mappost" data-tab="tab-mappost">
+            <span>📍 Post</span>
+          </button>
+        </div>
+
+        <!-- Sub-Panel 1: Hiker Radar & Trail Progress -->
+        <div id="tab-radar" class="dashboard-panel active">
+          <!-- Live Real-Time Location Tracker HUD -->
+          <div class="live-location-hud glass-panel" style="margin-bottom:10px;padding:10px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--muted);">CURRENT LOCATION</span>
+              <span class="badge-mini" id="hud-loc-mode" style="background:var(--shade);color:#fff;">🚶 Trail Sim</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;margin:3px 0;" id="hud-live-coords">22.5532° N, 88.3526° E</div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);">
+              <span>Accuracy: <strong id="hud-loc-accuracy">±6m</strong></span>
+              <span>Next Story: <strong id="hud-dist-next-story">45m away</strong></span>
+            </div>
+            <div class="loc-toggles-row" style="display:flex;gap:6px;margin-top:8px;">
+              <button id="btn-toggle-device-gps" class="btn btn-glass-sm" style="flex:1;font-size:11.5px;padding:6px 8px;justify-content:center;" title="Sync with device GPS hardware">
+                <span>🛰️ Use Device GPS</span>
+              </button>
+              <button id="btn-toggle-auto-walk" class="btn btn-glass-sm" style="flex:1;font-size:11.5px;padding:6px 8px;justify-content:center;" title="Simulate continuous walking in real time">
+                <span id="label-auto-walk">▶ Auto-Walk</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Straggler Alert Notice Banner -->
+          <div id="straggler-alert-banner" class="straggler-banner-notice">
+            <div class="straggler-banner-header">
+              <span class="straggler-badge">⏸️ RESTING STRAGGLER</span>
+              <span class="straggler-time" id="straggler-delay-time">+5.5 min behind</span>
+            </div>
+            <p id="straggler-banner-message" class="straggler-banner-text">
+              <strong>Rina</strong> is taking a rest at Russell Chai Stall bench (85% shade).
+            </p>
+            <div class="straggler-tactic-tag" id="straggler-tactic-recommendation">
+              Suggested: Wait 4 min at Loreto Colonnade bench (78% shade) to regroup.
+            </div>
+          </div>
+
+          <!-- Walkers Status List -->
+          <div class="section-title-row">
+            <span class="sec-title">WALKERS ON TRAIL</span>
+            <span class="sec-meta" id="walker-count-meta">5 Active</span>
+          </div>
+          <div id="live-walkers-radar-list" class="walkers-radar-list">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Interactive Walker Controls & Simulator -->
+          <div class="trail-action-card">
+            <div class="sec-title" style="margin-bottom:6px;">MY TRAIL ACTIONS</div>
+            <div class="trail-action-buttons">
+              <button id="btn-advance-simulator" class="btn btn-primary btn-advance-trail" title="Simulate walking 50m forward on route">
+                <span>🚶 Step Forward on Trail (+50m)</span>
+              </button>
+              <div class="button-dual-row">
+                <button id="btn-checkin-checkpoint" class="btn btn-glass-sm" style="flex:1;">
+                  <span>◉ Check-in (+10 🌱)</span>
+                </button>
+                <button id="btn-reached-finish" class="btn btn-glass-sm" style="flex:1;color:var(--shade);font-weight:800;">
+                  <span>● We Reached (+50 🌱)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-Panel 2: Individualized Group Chat -->
+        <div id="tab-chat" class="dashboard-panel hidden">
+          <div class="chat-header-info">
+            <span class="sec-title" id="chat-group-title">Park Street Club Chat</span>
+            <small style="color:var(--muted);">End-to-end trip channel</small>
+          </div>
+
+          <!-- Messages Stream -->
+          <div id="trail-chat-stream" class="chat-messages-stream">
+            <!-- Messages rendered dynamically -->
+          </div>
+
+          <!-- Quick Action Status Buttons for Hikers -->
+          <div class="chat-quick-actions">
+            <span class="quick-label">QUICK STATUS:</span>
+            <div class="quick-chips-scroll">
+              <button class="quick-chip-btn" data-msg="Hey I am taking a rest, I will continue shortly! Caught some breath on the shaded bench.">
+                ⏸️ Taking a rest
+              </button>
+              <button class="quick-chip-btn" data-msg="Resting under deep 88% tree canopy, feel free to keep pacing!">
+                🌳 In deep shade
+              </button>
+              <button class="quick-chip-btn" data-msg="Hydration stop — drinking water and checking sun index.">
+                💧 Hydration break
+              </button>
+              <button class="quick-chip-btn" data-msg="Just dropped an informative scenic story with photo on the trail! Unlock it as you pass!">
+                📸 Dropped story
+              </button>
+              <button class="quick-chip-btn" data-msg="Moving briskly, catching up with the pack now!">
+                🏃 Catching up
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Input Form -->
+          <form id="trail-chat-input-form" class="chat-input-row">
+            <input type="text" id="trail-chat-text" maxlength="280" placeholder="Message group… (e.g. Taking rest)" autocomplete="off" />
+            <button type="submit" id="btn-send-trail-chat" class="btn btn-primary btn-chat-send">Send</button>
+          </form>
+        </div>
+
+        <!-- Sub-Panel 3: Trail Story Discoveries & Unlocks -->
+        <div id="tab-drops" class="dashboard-panel hidden">
+          <div class="drops-header-row">
+            <div>
+              <span class="sec-title">GEO-TAGGED DISCOVERIES</span>
+              <p style="font-size:12px;color:var(--muted);margin-top:2px;">Unlock with photo &amp; paragraph within 60m to earn Grass Points.</p>
+            </div>
+            <button id="btn-open-drop-modal" class="btn btn-glass-sm" style="font-size:12px;padding:6px 10px;">
+              <span>📸 Pin Story</span>
+            </button>
+          </div>
+
+          <div id="trail-stories-radar-list" class="stories-radar-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Sub-Panel 4: Regroup Stops & Repair Tactics -->
+        <div id="tab-stops" class="dashboard-panel hidden">
+          <div class="sec-title" style="margin-bottom:6px;">REGROUP HALTS &amp; TACTICS</div>
+          <div id="trail-stops-radar-list" class="stops-radar-list">
+            <!-- Populated dynamically -->
+          </div>
+          <div class="ticket-card" style="margin-top:10px;">
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;">STRAGGLER REPAIR RANKINGS</div>
+            <div id="side-repair-cards-list" style="margin-top:6px;display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+
+        <!-- Sub-Panel 5: Turn-by-Turn Route Directions with Shade Analysis -->
+        <div id="tab-directions" class="dashboard-panel hidden">
+          <div class="sec-title" style="margin-bottom:4px;">TURN-BY-TURN SHADED GUIDANCE</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Street-by-street instructions prioritized for deep tree canopy &amp; building shade.</p>
+          <div id="shade-analysis-mini" style="background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;padding:8px;margin-bottom:10px;">
+            <div style="display:flex;gap:10px;font-size:12px;flex-wrap:wrap;">
+              <span>🌳 Shaded: <strong id="dir-shaded-m">—</strong></span>
+              <span>☀️ Sun: <strong id="dir-sun-m">—</strong></span>
+              <span>📍 <strong id="dir-route-type">Shade-first route</strong></span>
+            </div>
+            <div id="dir-shade-bar" style="margin-top:6px;height:6px;border-radius:3px;background:linear-gradient(to right,var(--shade) 55%,var(--sun) 45%);"></div>
+          </div>
+          <div id="trail-directions-list" class="directions-steps-list">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Sub-Panel 6: Post to Map -->
+        <div id="tab-mappost" class="dashboard-panel hidden">
+          <div class="sec-title" style="margin-bottom:6px;">📍 POST TO TRAIL MAP</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Tap a spot on the map to drop a pin, then fill in details. Others on this trail will see it.</p>
+          <div style="background:var(--paper);border:1.5px dashed var(--shade);border-radius:8px;padding:12px 14px;text-align:center;margin-bottom:12px;" id="mappost-tap-hint">
+            <div style="font-size:22px;margin-bottom:4px;">🗺️</div>
+            <div style="font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--muted);">TAP ANYWHERE ON MAP · THEN FILL BELOW</div>
+            <div id="mappost-coords-preview" style="font-family:var(--font-mono);font-size:11px;color:var(--shade);margin-top:4px;">No location picked yet</div>
+          </div>
+          <form id="mappost-form" style="display:flex;flex-direction:column;gap:8px;">
+            <input type="text" id="mappost-title" placeholder="Short title (e.g. Huge banyan tree with 95% shade)" maxlength="60"
+              style="padding:8px 10px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper);font-family:var(--font-body);font-size:13px;" />
+            <textarea id="mappost-desc" placeholder="Describe what you found — shade, food, warning, story…" rows="3" maxlength="280"
+              style="padding:8px 10px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper);font-family:var(--font-body);font-size:13px;resize:vertical;"></textarea>
+            <div style="display:flex;gap:8px;">
+              <select id="mappost-type" style="flex:1;padding:7px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper);font-family:var(--font-body);font-size:12.5px;">
+                <option value="observation">👁️ Observation</option>
+                <option value="shade">🌳 Shade Find</option>
+                <option value="warning">⚠️ Warning</option>
+                <option value="food">☕ Food/Water</option>
+                <option value="story">📸 Story Drop</option>
+              </select>
+              <button type="submit" id="btn-submit-mappost" class="btn btn-primary" style="flex:1;justify-content:center;padding:8px;">
+                <span>📍 Pin to Map</span>
+              </button>
+            </div>
+          </form>
+          <div id="mappost-pins-list" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- PAGE 3: COMMUNITY HIKE FEED (Browse, Categorize & Announce Hikes)  -->
+    <!-- =================================================================== -->
+    <section id="page-feed" class="page-view active" role="region" aria-label="Community Hike Feed">
+      <div class="feed-page-container">
+        <!-- Feed Header -->
+        <div class="feed-hero-card glass-panel">
+          <div class="feed-hero-text">
+            <h2 class="feed-hero-title">🌱 Kolkata Shaded Hike Community</h2>
+            <p class="feed-hero-desc">
+              Join upcoming group hikes, explore tree-lined heritage corridors, and earn Grass Points for every outdoor step. Filter by distance and food packages.
+            </p>
+          </div>
+          <button id="btn-toggle-announce-form" class="btn btn-primary">
+            <span>+ Initiate New Group Hike</span>
+          </button>
+        </div>
+
+        <!-- Personal Journey Studio (YOUR route first · Dadu's walk is just one saved agenda) -->
+        <div id="dadu-agenda-card" class="dadu-agenda-panel glass-panel" style="margin-top:12px;display:block;">
+          <div class="dadu-agenda-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <span class="agenda-pill-badge agenda-badge-help">🧭 PERSONAL JOURNEY · START HERE</span>
+              <h3 style="font-family:var(--font-display);font-size:18px;margin-top:4px;">Plan Your Own Shaded Journey</h3>
+              <p style="font-size:12.5px;color:var(--muted);">
+                Pick <strong>where → where</strong>, pick a <strong>time</strong>, compare shade across times on the map (Shade Studio lanes below),
+                then <strong>Start My Journey</strong>. Dadu's clinic walk is just one saved agenda in the feed — not the default.
+              </p>
+            </div>
+          </div>
+
+          <div class="dadu-agenda-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+            <div class="form-field">
+              <label for="dadu-origin-select" style="font-family:var(--font-mono);font-size:11px;font-weight:700;">FROM (START)</label>
+              <select id="dadu-origin-select" class="glass-select" style="width:100%;padding:7px;">
+                <option value="poi_dadu_home" selected>Dadu's Residence (Middleton Row)</option>
+                <option value="poi_flurys">Flurys Tea Room (Park St)</option>
+                <option value="poi_oxford">Oxford Bookstore (Heritage)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="dadu-dest-select" style="font-family:var(--font-mono);font-size:11px;font-weight:700;">TO (DESTINATION)</label>
+              <select id="dadu-dest-select" class="glass-select" style="width:100%;padding:7px;">
+                <option value="poi_clinic_bellevue" selected>🏥 Belle Vue Clinic</option>
+                <option value="poi_russell_market">💊 Russell Street Market &amp; Pharmacy</option>
+                <option value="poi_clinic_park">🏥 Park Clinic</option>
+                <option value="poi_camac_square">🏢 Camac Street Mall</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-top:10px;max-width:260px;">
+            <label for="dadu-mode-select" style="font-family:var(--font-mono);font-size:11px;font-weight:700;">AGENDA TYPE</label>
+            <select id="dadu-mode-select" class="glass-select" style="width:100%;padding:7px;">
+              <option value="family" selected>👵 Help / Family (slow, shaded, benches)</option>
+              <option value="club">🥾 Hike (group pack)</option>
+              <option value="trail">🚶 Self Travel (solo trek)</option>
+            </select>
+          </div>
+
+          <!-- Time Selection & Route Shift Comparison -->
+          <div style="margin-top:12px;">
+            <label style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">
+              SELECT TIME (SEE HOW SHADE CHANGES IN REAL TIME):
+            </label>
+            <div class="dadu-time-chips" style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="dadu-time-btn active" data-time="08:30" data-shade="82%">
+                🌅 08:30 AM · 82% Shade (Tree Canopy)
+              </button>
+              <button class="dadu-time-btn" data-time="10:30" data-shade="70%">
+                🌤️ 10:30 AM · 70% Shade (Mid-Morning)
+              </button>
+              <button class="dadu-time-btn" data-time="12:30" data-shade="52%">
+                ☀️ 12:30 PM · 52% Shade (Noon Caution!)
+              </button>
+              <button class="dadu-time-btn" data-time="15:30" data-shade="78%">
+                🌇 03:30 PM · 78% Shade (Building Shadow)
+              </button>
+              <button class="dadu-time-btn" data-time="17:00" data-shade="88%">
+                🌆 05:00 PM · 88% Shade (Sunset Breeze)
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Comparison Result Banner -->
+          <div id="dadu-route-comparison-box" class="tradeoff-box" style="margin-top:12px;background:var(--paper);padding:10px 14px;border-radius:6px;border:1.5px solid var(--ink);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:var(--font-mono);font-weight:700;font-size:13px;" id="dadu-preview-title">Dadu's Residence → Belle Vue Clinic</span>
+              <span class="badge badge-accent" id="dadu-preview-shade-badge">82% Shade</span>
+            </div>
+            <p style="font-size:12px;margin:6px 0;" id="dadu-preview-tradeoff">
+              At 08:30 AM, continuous banyan tree canopies shield Dadu from 5.7 minutes of direct sun. Shaded rest bench at 8-min mark.
+            </p>
+            <div style="display:flex;gap:12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);">
+              <span>Distance: <strong id="dadu-preview-dist">948m</strong></span>
+              <span>Sun: <strong id="dadu-preview-sun">2.8 mins</strong></span>
+              <span>Rest Stops: <strong>2 Benches</strong></span>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:10px;align-items:stretch;">
+            <button id="btn-embark-dadu-custom" class="btn btn-primary" style="flex:1;justify-content:center;padding:10px;">
+              <span>▶ Start My Journey</span>
+            </button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:6px;" id="dadu-embark-hint">
+            Starts your personal journey at the selected time → opens Live Trail with chain-by-chain lanes, stories, chat &amp; Shade Studio.
+          </p>
+        </div>
+
+        <!-- Announce Hike Form (Collapsible / Prominent) -->
+        <div id="announce-hike-card" class="announce-card glass-panel hidden">
+          <h3 class="announce-card-title">📢 Announce a Group Hike</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Route will be automatically computed shade-wise with rest stops placed.</p>
+          <form id="announce-hike-form" class="announce-grid-form">
+            <div class="form-field full-width">
+              <label for="ann-title-input">Hike Title</label>
+              <input type="text" id="ann-title-input" placeholder="e.g. Sunset Shaded Tea Stroll across Park Street" maxlength="80" required />
+            </div>
+            <div class="form-field">
+              <label for="ann-origin-select">From (Origin)</label>
+              <select id="ann-origin-select" class="glass-select" required></select>
+            </div>
+            <div class="form-field">
+              <label for="ann-dest-select">To (Destination)</label>
+              <select id="ann-dest-select" class="glass-select" required></select>
+            </div>
+            <div class="form-field">
+              <label for="ann-category-select">Distance Category</label>
+              <select id="ann-category-select" class="glass-select">
+                <option value="short">🟢 Short Stroll (&lt; 1.5 km)</option>
+                <option value="medium" selected>🟡 Medium Trek (1.5 – 4 km)</option>
+                <option value="long">🔴 Long Expedition (&gt; 4 km)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ann-package-select">Package &amp; Amenities</label>
+              <select id="ann-package-select" class="glass-select">
+                <option value="food" selected>☕ Complete Food &amp; Chai Package</option>
+                <option value="water">💧 Carry Water / Light Pack</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="ann-depart-time">Depart Time (IST)</label>
+              <input type="text" id="ann-depart-time" value="15:30" placeholder="15:30" />
+            </div>
+            <div class="form-field">
+              <label for="ann-walker-name">Host Name</label>
+              <input type="text" id="ann-walker-name" value="Walker" placeholder="Your name" />
+            </div>
+            <div class="form-field full-width" style="margin-top:6px;">
+              <button type="submit" id="btn-submit-announce" class="btn btn-primary" style="width:100%;justify-content:center;">
+                <span>Publish to Hike Feed (+5 🌱 Grass Points)</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Agenda & Route Guidance Hub -->
+        <div class="agenda-guidance-card glass-panel" style="margin-top:12px;margin-bottom:12px;padding:14px 18px;border-left:5px solid var(--shade);background:var(--paper);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <strong style="font-family:var(--font-display);font-size:15px;color:var(--ink);">🎯 Step 1: Choose Your Walking Agenda &amp; Fixed Route</strong>
+              <p style="font-size:13px;color:var(--muted);margin-top:3px;">
+                Before entering the map, choose your agenda (Hike, Help, or Self Travel), pick one of the 5 curated shaded routes, and tap <strong>"Embark on Trail"</strong> to register your name and start tracking.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Chips Bar -->
+        <div class="feed-filter-bar glass-panel">
+          <div class="filter-group">
+            <span class="filter-label">AGENDA:</span>
+            <button class="filter-chip active" data-filter-agenda="all">All Agendas</button>
+            <button class="filter-chip" data-filter-agenda="hike">🥾 Hike (Group Packs)</button>
+            <button class="filter-chip" data-filter-agenda="help">👵 Help (Family/Companion)</button>
+            <button class="filter-chip" data-filter-agenda="self">🚶 Self Travel (Solo Treks)</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">DISTANCE:</span>
+            <button class="filter-chip active" data-filter-dist="all">All</button>
+            <button class="filter-chip" data-filter-dist="short">🟢 Short Stroll (&lt;1.5km)</button>
+            <button class="filter-chip" data-filter-dist="medium">🟡 Medium Trek (1.5-4km)</button>
+            <button class="filter-chip" data-filter-dist="long">🔴 Long Expedition (&gt;4km)</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">PACKAGE:</span>
+            <button class="filter-chip active" data-filter-pkg="all">All</button>
+            <button class="filter-chip" data-filter-pkg="food">☕ Food Package</button>
+            <button class="filter-chip" data-filter-pkg="water">💧 Carry Water</button>
+          </div>
+        </div>
+
+        <!-- Hikes Grid List -->
+        <div id="community-feed-grid" class="community-feed-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- PAGE 4: GRASS POINTS & OUTDOOR PASSPORT (Wallet, Journal, Board)   -->
+    <!-- =================================================================== -->
+    <section id="page-passport" class="page-view" role="region" aria-label="Grass Points &amp; Outdoor Passport">
+      <div class="passport-page-container">
+        <!-- Hero Wallet Card -->
+        <div class="passport-hero-card glass-panel">
+          <div class="wallet-badge-row">
+            <span class="wallet-stamp">OUTDOOR PASSPORT</span>
+            <span class="tier-pill" id="passport-tier-pill">Canopy Ranger</span>
+          </div>
+          <div class="wallet-points-value">
+            <span id="passport-total-points">40</span>
+            <span class="points-unit">🌱 Grass Points</span>
+          </div>
+          <p class="wallet-subtitle">
+            Earned through shade navigation, completing group hikes, and unlocking geo-discoveries.
+          </p>
+
+          <!-- Outdoor Activity Progression Bar -->
+          <div class="tier-progress-wrap">
+            <div class="tier-labels">
+              <span>🌱 Seedling (0)</span>
+              <span>🥾 Trail Scout (40)</span>
+              <span>🌿 Canopy Ranger (80)</span>
+              <span>👑 Chhaya Master (150+)</span>
+            </div>
+            <div class="tier-bar-bg">
+              <div id="tier-bar-fill" class="tier-bar-fill" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Points Rules Grid -->
+        <div class="points-rules-grid">
+          <div class="point-rule-card glass-panel">
+            <div class="rule-icon">🌱 +5</div>
+            <div class="rule-title">Join a Group Hike</div>
+            <div class="rule-desc">Awarded when you sign up for any upcoming or active trail.</div>
+          </div>
+          <div class="point-rule-card glass-panel">
+            <div class="rule-icon">◉ +10</div>
+            <div class="rule-title">Stop Check-In</div>
+            <div class="rule-desc">Awarded when your feet reach a shaded rest or regroup halt.</div>
+          </div>
+          <div class="point-rule-card glass-panel">
+            <div class="rule-icon">🔓 +25</div>
+            <div class="rule-title">Unlock Trail Story</div>
+            <div class="rule-desc">Unlock a photo &amp; paragraph pinned by hikers along the route.</div>
+          </div>
+          <div class="point-rule-card glass-panel">
+            <div class="rule-icon">● +50</div>
+            <div class="rule-title">Hike Completion</div>
+            <div class="rule-desc">Awarded when you and your group reach destination safely.</div>
+          </div>
+        </div>
+
+        <!-- Unlocked Stories Gallery (The Discoveries Journal) -->
+        <div class="journal-section glass-panel">
+          <div class="journal-header">
+            <div>
+              <h3 class="journal-title">📖 My Unlocked Trail Discoveries</h3>
+              <p style="font-size:13px;color:var(--muted);margin-top:2px;">
+                Stories and photographs you unlocked while exploring Kolkata's shaded paths.
+              </p>
+            </div>
+            <span class="badge" id="unlocked-count-badge">1 Unlocked</span>
+          </div>
+          <div id="unlocked-stories-gallery" class="stories-gallery-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Community Leaderboard -->
+        <div class="leaderboard-section glass-panel">
+          <h3 class="leaderboard-title">🏆 Kolkata Outdoor Trail Leaderboard</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Top outdoor walkers across all community groups.</p>
+          <div id="passport-leaderboard-list" class="leaderboard-table">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODALS & POPUPS (Celebratory Story Unlock, Pin Story, QR Ticket)   -->
+    <!-- =================================================================== -->
+
+    <!-- Celebratory Story Unlocked Modal -->
+    <div id="story-unlock-modal" class="modal-overlay hidden" role="dialog" aria-label="Story Unlocked Celebration">
+      <div class="modal-box modal-celebrate">
+        <button class="modal-close" id="close-story-unlock-modal">×</button>
+        <div class="celebrate-badge-row">
+          <span class="badge badge-accent">✨ DISCOVERY UNLOCKED</span>
+          <span class="badge badge-green">+25 🌱 GRASS POINTS</span>
+        </div>
+        <h3 id="story-unlock-modal-title" class="celebrate-title">110-Year-Old Heritage Banyan Canopy</h3>
+
+        <div class="story-image-wrap">
+          <img id="story-unlock-image" src="" alt="Story photo" class="celebrate-photo" />
+        </div>
+
+        <div class="story-text-container">
+          <p id="story-unlock-paragraph" class="story-paragraph">
+            Offers 92% continuous shade. Fresh breeze and clay cups of Elaichi Chai right across the alley. Rest here to recover before the sunlit crossing.
+          </p>
+        </div>
+
+        <div class="story-meta-row">
+          <span>🌿 Shade at spot: <strong id="story-unlock-shade">92%</strong></span>
+          <span>📍 Distance: <strong id="story-unlock-dist">At spot</strong></span>
+        </div>
+
+        <button id="btn-collect-story-points" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px;">
+          <span>Collect Points &amp; Add to Journal 🌱</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drop / Pin New Story Modal -->
+    <div id="drop-story-modal" class="modal-overlay hidden" role="dialog" aria-label="Pin New Story">
+      <div class="modal-box">
+        <button class="modal-close" id="close-drop-story-modal">×</button>
+        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;">📸 Pin a Story on Trail</h3>
+        <p style="font-size:13px;color:var(--muted);margin:4px 0 12px;">
+          Leave a photograph and informative paragraph for other hikers who walk this spot.
+        </p>
+
+        <form id="drop-story-form" style="display:flex;flex-direction:column;gap:10px;">
+          <label style="font-size:13px;font-weight:700;">
+            Story Title &amp; Discovery (Paragraph)
+            <textarea id="drop-story-text" rows="3" maxlength="280" placeholder="e.g. 100-year-old mahogany canopy here. Continuous breeze and clay water pots..." style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;font-size:14px;margin-top:4px;" required></textarea>
+          </label>
+
+          <label style="font-size:13px;font-weight:700;">
+            Photo Discovery
+            <input type="file" id="drop-story-file" accept="image/*" style="display:block;margin-top:4px;font-size:13px;" />
+          </label>
+          <img id="drop-story-photo-preview" alt="Preview" style="display:none;max-height:180px;object-fit:cover;border:2px solid var(--ink);" />
+
+          <div class="ticket-card" style="font-size:12.5px;">
+            <span>📍 Pinned to: <strong id="drop-story-coords-label">Current Trail Location</strong></span> ·
+            <span>🌿 Shade: <strong id="drop-story-shade-label">85%</strong></span>
+          </div>
+
+          <button type="submit" id="btn-submit-drop-story" class="btn btn-primary" style="justify-content:center;">
+            <span>Pin Story to Trail (+25 🌱)</span>
+          </button>
         </form>
-        <div class="quick-route-bar">
-          <div class="selector-group"><span class="select-label" data-i18n="quick.from">From</span><select id="origin-select" class="glass-select" aria-label="Origin"><option value="">Select origin…</option></select></div>
-          <div class="selector-arrow">→</div>
-          <div class="selector-group"><span class="select-label" data-i18n="quick.to">To</span><select id="destination-select" class="glass-select" aria-label="Destination"><option value="">Select destination…</option></select></div>
-          <button id="quick-route-btn" class="btn btn-glass-sm" data-i18n="quick.go">Go</button>
-        </div>
-        <div class="preset-chips">
-          <span class="chips-label" data-i18n="chips.label">Presets</span>
-          <button class="chip chip-active" data-mode="family" data-prompt="Walk Dadu to the clinic around noon, he can't take much sun." data-i18n="chip.family">👵 Dadu to Clinic</button>
-          <button class="chip" data-mode="club" data-prompt="Sunday 4pm, 6 of us, Dadu can't take much sun, Rina wants chai on the way." data-i18n="chip.club">🏃 Sunday Club</button>
-          <button class="chip" data-mode="family" data-prompt="Walk from Flurys to Camac Square at noon, rush pace." data-i18n="chip.noon">☀️ High Noon</button>
-          <button class="chip" data-mode="trail" data-prompt="Hike Russell Street to Camac loop with regroup points." data-i18n="chip.trail">🥾 Russell Loop</button>
-        </div>
       </div>
     </div>
 
-    <div id="noon-alert" class="glass-panel noon-alert hidden" role="alert">
-      <div class="alert-icon">☀️</div>
-      <div class="alert-content"><strong data-i18n="noon.title">High-noon honesty note</strong><p data-i18n="noon.body">At 12 PM the sun sits ~60° overhead. Shadows shrink to 0.56× height and barely reach the pavement. Leave before 10 AM or after 2:30 PM for deep shade.</p></div>
-      <button class="alert-close" id="noon-alert-close" aria-label="Dismiss alert">×</button>
-    </div>
-
-    <aside id="route-hud" class="glass-panel route-hud hidden" aria-label="Route plan">
-      <div class="hud-header">
-        <div><span class="hud-label" id="hud-mode-label">Family Walk Plan</span><h2 id="hud-title" class="hud-title">Home → Clinic</h2></div>
-        <button id="hud-close" class="btn-icon" title="Close comparison">×</button>
-      </div>
-      <div class="hud-tabs" role="tablist">
-        <button class="hud-tab-btn active" id="tab-btn-overview" data-target="panel-overview" data-i18n="tabs.route">Route</button>
-        <button class="hud-tab-btn" id="tab-btn-sweep" data-target="panel-sweep" data-i18n="tabs.sweep">Start time</button>
-        <button class="hud-tab-btn" id="tab-btn-stops" data-target="panel-stops"><span data-i18n="tabs.stops">Stops</span> (<span id="stops-count-badge">0</span>)</button>
-        <button class="hud-tab-btn" id="tab-btn-repair" data-target="panel-repair" data-i18n="tabs.repair">Repair</button>
-        <button class="hud-tab-btn" id="tab-btn-share" data-target="panel-share" data-i18n="tabs.share">Share</button>
-      </div>
-
-      <div id="panel-overview" class="hud-tab-panel active">
-        <div id="weather-banner" class="tradeoff-box" style="margin-bottom:10px;">
-          <div><div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" id="weather-condition-text">Live Open-Meteo: 31°C · UV 4.2</div>
-          <div style="font-size:12px;" id="weather-advice-text">Standard budget active.</div></div>
-          <span class="badge" id="weather-budget-tag" style="margin-left:auto;align-self:center;">4.0m</span>
+    <!-- QR Ticket Modal -->
+    <div id="qr-modal" class="modal-overlay hidden" role="dialog" aria-label="Trip QR">
+      <div class="modal-box" style="text-align:center;">
+        <button class="modal-close" id="close-qr-modal">×</button>
+        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="qr.title">🎫 Trip ticket</h3>
+        <p style="font-size:13px;margin-bottom:10px;" data-i18n="qr.sub">Scan to join this trip or view live trail dashboard.</p>
+        <div class="ticket-card" style="display:inline-block;"><img id="qr-image" src="" alt="Trip QR code" style="width:200px;height:200px;display:block;background:#fff;" /></div>
+        <div style="font-family:var(--font-mono);font-size:12px;margin:10px 0;">/t/<span id="qr-url-text">parkst-club</span></div>
+    <!-- Register Walker Profile Modal -->
+    <div id="register-walker-modal" class="modal-overlay hidden" role="dialog" aria-label="Register Walker Profile">
+      <div class="modal-box modal-register" style="max-width:440px;">
+        <button class="modal-close" id="close-register-modal">×</button>
+        <div class="celebrate-badge-row">
+          <span class="badge badge-accent">👤 WALKER REGISTRATION</span>
+          <span class="badge badge-green">+10 🌱 WELCOME BONUS</span>
         </div>
-        <div class="savings-card">
-          <span class="stamp" id="savings-stamp" data-i18n="stamp.saved">SHADE SAVED</span>
-          <div class="savings-value"><span id="saved-sun-mins">0.0</span><span class="savings-unit" data-i18n="savings.unit">sun-min saved</span></div>
-          <p id="savings-subtitle" class="savings-subtitle">Shielding you from the Kolkata afternoon</p>
-          <div class="gauge-wrap">
-            <svg id="sun-gauge" viewBox="0 0 200 112" role="img" aria-label="Sun budget gauge">
-              <path d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#2A1F17" stroke-width="3"/>
-              <g id="gauge-ticks" stroke="#2A1F17" stroke-width="2"></g>
-              <path id="gauge-fill" d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#1F4D3A" stroke-width="10" stroke-linecap="butt" stroke-dasharray="271" stroke-dashoffset="271"/>
-              <g><line id="gauge-needle" x1="100" y1="100" x2="100" y2="34" stroke="#C8321E" stroke-width="3.5"/><circle cx="100" cy="100" r="7" fill="#2A1F17"/></g>
-              <text x="100" y="110" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" id="gauge-label">0 / 4.0 sun-min</text>
-            </svg>
-            <div class="gauge-caption" data-i18n="gauge.caption">sun-budget · marigold → vermilion as exposure grows</div>
+        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;text-align:center;margin:6px 0;">Register for Trail</h3>
+        <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.4;">
+          Register with your name before entering the map to track your live position, chat with your group, and unlock geo-locked discoveries.
+        </p>
+        <form id="form-register-walker" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label for="input-reg-name" style="font-family:var(--font-mono);font-size:11px;font-weight:700;display:block;margin-bottom:4px;">YOUR WALKER NAME</label>
+            <input type="text" id="input-reg-name" placeholder="e.g. Pritam" maxlength="30" value="Pritam" required style="width:100%;padding:10px;border:2px solid var(--ink);border-radius:4px;font-size:14px;background:var(--paper);" />
           </div>
-        </div>
-        <div class="stat-grid" style="margin-top:10px;">
-          <div class="stat-box stat-shade active-path" id="shade-stat-box">
-            <div class="stat-box-header"><span class="status-dot dot-green"></span><strong data-i18n="stat.shaded">Shaded path</strong><span class="badge-mini badge-green" data-i18n="stat.pick">Pick</span></div>
-            <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shade-sun-mins" class="color-green">- mins</strong></div>
-            <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shade-total-mins">-</strong> min (<span id="shade-dist">-</span>)</span></div>
-            <div class="progress-bar-bg"><div id="shade-bar" class="progress-bar-fill fill-green" style="width:0%"></div></div>
-            <small id="shade-pct" class="stat-subtext">Calculating…</small>
+          <div>
+            <label for="select-reg-sensitivity" style="font-family:var(--font-mono);font-size:11px;font-weight:700;display:block;margin-bottom:4px;">SUN SENSITIVITY LEVEL</label>
+            <select id="select-reg-sensitivity" class="glass-select" style="width:100%;padding:8px;">
+              <option value="normal" selected>Normal Walker (12 min direct sun budget)</option>
+              <option value="high">High Sensitivity / Elderly (4 min sun budget)</option>
+              <option value="low">Low Sensitivity / Runner (25 min sun budget)</option>
+            </select>
           </div>
-          <div class="stat-box stat-shortest" id="shortest-stat-box">
-            <div class="stat-box-header"><span class="status-dot dot-red"></span><strong data-i18n="stat.shortest">Shortest</strong><span class="badge-mini badge-direct" data-i18n="stat.direct">Direct</span></div>
-            <div class="stat-row"><span data-i18n="stat.sun">Sun</span><strong id="shortest-sun-mins" class="color-red">- mins</strong></div>
-            <div class="stat-row"><span data-i18n="stat.walk">Walk</span><span><strong id="shortest-total-mins">-</strong> min (<span id="shortest-dist">-</span>)</span></div>
-            <div class="progress-bar-bg"><div id="shortest-bar" class="progress-bar-fill fill-red" style="width:0%"></div></div>
-            <small id="shortest-pct" class="stat-subtext">Baseline…</small>
-          </div>
-        </div>
-        <div class="tradeoff-box" style="margin-top:10px;"><div class="tradeoff-icon">✎</div><p id="tradeoff-text" class="tradeoff-text">Calculating trade-off…</p></div>
-        <div class="segments-card" style="margin-top:10px;">
-          <div class="segments-header"><span class="segments-title" data-i18n="legend.exposure">Lane-by-lane exposure · solid = shade, dashed = sun</span><span id="segment-count" class="badge-mini">0 lanes</span></div>
-          <div id="segments-list" class="segments-list"></div>
-        </div>
-        <div class="voice-card" style="margin-top:10px;">
-          <div class="voice-info">
-            <button id="voice-play-btn" class="btn btn-voice"><span id="voice-btn-text" data-i18n="voice.listen">▶ Listen briefing</span></button>
-            <span class="voice-provider" id="voice-provider-tag">Voice briefing</span>
-          </div>
-          <div id="voice-wave" class="voice-wave hidden"><span></span><span></span><span></span><span></span><span></span></div>
-          <p id="voice-script" class="voice-script">“Leave at 3 PM via the shaded Middleton Row lane…”</p>
-        </div>
-        <div class="ticket-card" id="accuracy-meter" style="margin-top:10px;">
-          <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="meter.title">FIELD CHECK · PREDICTED vs SEEN</div>
-          <div id="accuracy-tally" style="font-size:13px;margin-top:4px;">No taps yet — be the first to tap sun/shade on the walk.</div>
-          <div id="accuracy-streets" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
-        </div>
-      </div>
-
-      <div id="panel-sweep" class="hud-tab-panel hidden">
-        <div class="sweep-container">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><strong style="font-family:var(--font-display);font-size:16px;" data-i18n="sweep.title">Best time to leave</strong><span id="sweep-best-badge">Best: 11:40</span></div>
-          <p style="font-size:13px;" data-i18n="sweep.sub">Sun exposure every 10 min across the window. Best start gets the stamp.</p>
-          <svg id="sweep-curve-svg" viewBox="0 0 320 90" preserveAspectRatio="none" aria-label="Exposure curve"></svg>
-          <div class="sweep-bars" id="sweep-bars-container"></div>
-          <div id="sweep-budget-warning" class="hidden" style="background:var(--sun);border:2px solid var(--ink);padding:8px;font-size:12.5px;font-weight:700;">⚠ No comfortable window today — try later, or take a ride.<p id="sweep-warning-subtext" style="font-weight:400;">All slots exceed the sun budget.</p></div>
-        </div>
-      </div>
-
-      <div id="panel-stops" class="hud-tab-panel hidden">
-        <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="stops.title">Stop passport</strong>
-        <p style="font-size:13px;" data-i18n="stops.sub">A ticket per halt. Stamped when your feet reach it.</p>
-        <div id="rest-stops-list" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;"></div>
-      </div>
-
-      <div id="panel-repair" class="hud-tab-panel hidden">
-        <div id="repair-alert-box" class="repair-banner"><div class="repair-banner-title">⚠ <span id="repair-status-title">Watching pace</span></div><p id="repair-status-desc" style="font-size:13px;">If a walker lags &gt; 3 min, ranked fixes land here.</p></div>
-        <strong style="font-size:14px;" data-i18n="repair.title">Regroup tickets</strong>
-        <div id="repair-cards-list" style="margin-top:4px;"></div>
-        <div class="ticket-card"><div style="font-family:var(--font-mono);font-size:10px;font-weight:700;" data-i18n="repair.groupAlert">GROUP ALERT · COPYABLE</div><p id="repair-copy-text" style="font-size:13px;margin-top:4px;">Group walking together.</p><button id="copy-repair-btn" class="btn btn-glass-sm" style="margin-top:8px;width:100%;" data-i18n="repair.copy">Copy group alert</button></div>
-      </div>
-
-      <div id="panel-share" class="hud-tab-panel hidden">
-        <strong style="font-family:var(--font-display);font-size:17px;" data-i18n="share.title">Trip chit</strong>
-        <div class="ticket-card"><p id="share-plan-text" style="font-size:14px;line-height:1.5;">Generating briefing…</p></div>
-        <div style="display:flex;gap:8px;margin-top:10px;"><button id="copy-share-btn" class="btn btn-primary" style="flex:1;justify-content:center;"><span data-i18n="share.copy">Copy message</span></button><button id="open-trip-qr-direct" class="btn btn-glass-sm" style="flex:1;" data-i18n="share.qr">View QR</button></div>
-        <div style="margin-top:8px;font-family:var(--font-mono);font-size:12px;"><span data-i18n="share.code">Trip code ·</span> <strong id="share-trip-code">dadu-clinic</strong></div>
-      </div>
-    </aside>
-
-    <div class="glass-panel window-widget" aria-label="Best walking window">
-      <div class="widget-header"><div><span class="widget-badge">TabPFN · ML</span><h3 class="widget-title" data-i18n="widget.title">Best walking window</h3></div><span class="mae-tag" id="mae-tag">MAE …</span></div>
-      <div class="window-recommendation" role="button" tabindex="0"><div class="window-time" id="best-window-time">14:30 – 16:30</div><div class="window-reason" id="best-window-reason">Afternoon shade · long building shadows</div></div>
-      <div class="window-list" id="window-list"></div>
-      <div class="window-hint" data-i18n="widget.hint">Tap a window to preview its shadows</div>
-    </div>
-
-    <button class="theme-toggle" id="theme-toggle" title="Toggle warm dark paper" aria-label="Toggle dark mode">◐</button>
-
-    <div class="glass-panel slider-container docked" id="slider-panel">
-      <div class="slider-header">
-        <div class="slider-controls">
-          <button id="play-btn" class="btn-play" title="Sweep shadows"><svg id="play-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
-          <span class="slider-title" data-i18n="slider.title">Sundial · shadow sweep</span>
-        </div>
-        <div class="current-time-display"><span id="time-display">15:00</span><small>IST</small></div>
-      </div>
-      <div class="sundial-row">
-        <svg id="sundial" viewBox="0 0 120 70" width="120" height="70" role="img" aria-label="Sundial dial">
-          <path d="M8 62 A52 52 0 0 1 112 62" fill="none" stroke="#2A1F17" stroke-width="2.5"/>
-          <g font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" fill="#2A1F17" text-anchor="middle">
-            <text x="10" y="66">6</text><text x="32" y="30">9</text><text x="60" y="16">12</text><text x="88" y="30">15</text><text x="110" y="66">18</text>
-          </g>
-          <g id="sundial-ticks" stroke="#2A1F17" stroke-width="1.6"></g>
-          <line id="gnomon-shadow" x1="60" y1="60" x2="60" y2="22" stroke="#1F4D3A" stroke-width="4" stroke-linecap="round"/>
-          <circle cx="60" cy="60" r="5" fill="#C8321E" stroke="#2A1F17" stroke-width="2"/>
-        </svg>
-        <div class="sundial-caption" data-i18n="slider.caption">gnomon shadow follows the slider.<br>mono numerals · IST</div>
-      </div>
-      <div class="slider-wrapper"><span class="slider-tick-label">06:00</span><input type="range" id="time-slider" min="12" max="36" step="1" value="30" aria-label="Time of day in 30 minute steps" /><span class="slider-tick-label">18:00</span></div>
-      <div class="slider-ticks">
-        <span class="tick-btn" data-step="12">6 AM</span><span class="tick-btn" data-step="16">8 AM</span><span class="tick-btn" data-step="18">9 AM</span><span class="tick-btn tick-highlight" data-step="24">12 PM</span><span class="tick-btn" data-step="28">2 PM</span><span class="tick-btn tick-highlight tick-active" data-step="30">3 PM ★</span><span class="tick-btn" data-step="32">4 PM</span><span class="tick-btn" data-step="36">6 PM</span>
-      </div>
-    </div>
-
-    <div class="glass-panel map-legend">
-      <div class="legend-header"><span class="legend-title" data-i18n="key.title">Print key</span></div>
-      <div class="legend-item"><span class="legend-color legend-shadow"></span><span data-i18n="key.shadow">Hatched shadow</span></div>
-      <div class="legend-item"><span class="legend-color legend-shaded-route"></span><span data-i18n="key.shade">Shade · solid</span></div>
-      <div class="legend-item"><span class="legend-color legend-sunlit-route"></span><span data-i18n="key.sun">Sun · dashed</span></div>
-      <div class="legend-item"><span class="legend-color legend-shortest-route"></span><span data-i18n="key.shortest">Shortest</span></div>
-      <div class="legend-divider"></div>
-      <div class="legend-item landmark-toggle" id="toggle-landmarks-btn"><span>📍</span><span><span data-i18n="key.landmarks">Landmarks</span> (<span id="poi-count-badge">7</span>)</span></div>
-    </div>
-  </div>
-
-  <div id="walk-modal" class="modal-overlay hidden" role="dialog" aria-label="Walk view">
-    <div class="modal-box">
-      <button class="modal-close" id="close-walk-modal">×</button>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;"><h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" id="walk-modal-title" data-i18n="walk.title">🚶 Walk</h3><span class="badge" id="walk-modal-trip-code">dadu-clinic</span></div>
-      <div style="display:flex;gap:6px;margin-bottom:12px;"><button id="view-mode-walker" class="hud-tab-btn active" style="flex:1;" data-i18n="walk.onstreet">On street</button><button id="view-mode-watcher" class="hud-tab-btn" style="flex:1;" data-i18n="walk.watcher">Watcher</button><button id="view-mode-chat" class="hud-tab-btn" style="flex:1;"><span data-i18n="walk.chat">Chat</span> (<span id="chat-count">0</span>)</button><button id="view-mode-group" class="hud-tab-btn" style="flex:1;" data-i18n="walk.group">Group</button></div>
-      <div id="view-content-walker">
-        <label style="font-size:13px;font-weight:700;" for="walker-name-input" data-i18n="walk.name">Walker name</label>
-        <input type="text" id="walker-name-input" value="Dadu" style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:16px;margin:6px 0 10px;" />
-        <div class="ticket-card"><span style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="walk.next">NEXT HALT</span><h4 id="next-stop-name" style="font-family:var(--font-display);font-size:20px;">Stop 1 · rest bench</h4><div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:13px;margin-top:4px;"><span>Shade <strong id="next-stop-shade">82%</strong></span><span>ETA <strong id="next-stop-eta">8 min</strong></span></div></div>
-        <button id="btn-tap-checkin" class="btn-large-touch btn-touch-checkin"><span>◉ I’m at Stop 1</span></button>
-        <div class="ticket-card" id="tap-shade-prompt" style="margin-top:10px;">
-          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="walk.tapPrompt">AT THIS HALT — SUN OR SHADE?</div>
-          <p style="font-size:13px;margin-top:2px;" data-i18n="walk.tapSub">Your tap calibrates the map for the next walker.</p>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button id="btn-tap-shaded" class="btn btn-glass-sm" style="flex:1;justify-content:center;" data-i18n="walk.shaded">🌿 Shaded</button>
-            <button id="btn-tap-sunny" class="btn btn-glass-sm" style="flex:1;justify-content:center;" data-i18n="walk.sunny">☀️ Sunny</button>
-          </div>
-          <div id="tap-thanks" style="font-size:13px;font-weight:700;margin-top:6px;"></div>
-        </div>
-        <button id="btn-tap-reached" class="btn-large-touch btn-touch-reached"><span>● We reached safely</span></button>
-        <div id="walk-behind-banner" class="hidden" style="margin-top:12px;background:var(--sun);border:2px solid var(--ink);padding:10px;"><div style="font-weight:800;" data-i18n="walk.behind">⚠ Delay detected</div><p id="walk-behind-text" style="font-size:14px;">Rina is 4 min behind.</p><div id="walk-repair-shortcut" style="font-size:13px;font-weight:700;">Take the shaded side lane.</div></div>
-      </div>
-      <div id="view-content-watcher" class="hidden">
-        <svg class="empty-illus" viewBox="0 0 200 90" width="200" height="90" aria-hidden="true"><ellipse cx="100" cy="80" rx="70" ry="7" fill="#E8D6B5" stroke="#2A1F17" stroke-width="2"/><path d="M96 78 V44 M96 52 C80 52 74 40 74 40 M96 48 C112 48 118 36 118 36" stroke="#2A1F17" stroke-width="3" fill="none"/><ellipse cx="74" cy="36" rx="16" ry="9" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2"/><ellipse cx="118" cy="32" rx="18" ry="10" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2"/><ellipse cx="97" cy="26" rx="20" ry="11" fill="#5E8C6A" stroke="#2A1F17" stroke-width="2"/><circle cx="150" cy="22" r="10" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/></svg>
-        <div class="walker-status-word" id="watcher-status-title" data-i18n="watcher.walking">Walking…</div>
-        <div style="text-align:center;font-size:32px;" id="watcher-status-icon">🚶</div>
-        <p id="watcher-status-desc" style="font-size:15px;text-align:center;margin-top:4px;">Departed 11:40 AM · expected arrival 11:55 AM.</p>
-        <div style="margin-top:12px;"><strong data-i18n="watcher.timeline">Check-in timeline</strong><div id="watcher-timeline" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div></div>
-      </div>
-      <div id="view-content-chat" class="hidden">
-        <p style="font-size:13px;" data-i18n="chat.sub">Group room for this trip — “I’m behind, wait at the bench” lives here.</p>
-        <div id="chat-messages" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;"></div>
-        <form id="chat-form" style="display:flex;gap:6px;margin-top:8px;">
-          <input type="text" id="chat-input" maxlength="280" data-i18n-ph="chat.placeholder" placeholder="Message the group…" autocomplete="off" style="flex:1;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:15px;" />
-          <button type="submit" id="chat-send" class="btn btn-primary" style="padding:10px 14px;" data-i18n="chat.send">Send</button>
-        </form>
-      </div>
-      <div id="view-content-group" class="hidden">
-        <p style="font-size:13px;" data-i18n="group.sub">Live spots (shared only while tracking) + grass points.</p>
-        <div id="group-members" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
-        <strong style="font-size:14px;display:block;margin-top:10px;" data-i18n="group.points">🌱 Grass points</strong>
-        <div id="group-points" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="radar-modal" class="modal-overlay hidden" role="dialog" aria-label="Location cards">
-    <div class="modal-box">
-      <button class="modal-close" id="close-radar-modal">×</button>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="radar.title">📍 Pinned cards</h3>
-      <div style="display:flex;gap:6px;margin:10px 0;"><button id="radar-tab-view" class="hud-tab-btn active" style="flex:1;"><span data-i18n="radar.nearby">Nearby</span> (<span id="radar-card-count">0</span>)</button><button id="radar-tab-leave" class="hud-tab-btn" style="flex:1;" data-i18n="radar.leave">Leave one</button></div>
-      <div id="radar-panel-view">
-        <svg class="empty-illus" viewBox="0 0 200 70" width="180" height="64" aria-hidden="true"><rect x="30" y="18" width="44" height="34" fill="#1F4D3A" stroke="#2A1F17" stroke-width="2.5"/><rect x="82" y="10" width="36" height="42" fill="#B8553A" stroke="#2A1F17" stroke-width="2.5"/><rect x="124" y="24" width="46" height="28" fill="#F2A900" stroke="#2A1F17" stroke-width="2.5"/><line x1="10" y1="58" x2="190" y2="58" stroke="#2A1F17" stroke-width="2.5"/></svg>
-        <p style="font-size:13px;margin-bottom:8px;" data-i18n="radar.sub">Notes within 60 m appear at once; within 300 m show distance + bearing.</p>
-        <div id="radar-cards-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
-      </div>
-      <div id="radar-panel-leave" class="hidden">
-        <form id="leave-card-form" style="display:flex;flex-direction:column;gap:10px;">
-          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.motive">Motive</span><select id="card-type-select" class="glass-select" style="width:100%;margin-top:4px;"><option value="tip">Shade tip / bench</option><option value="warning">Sun warning</option><option value="meetup">Meetup / chai</option><option value="hike">Hike / trail note</option><option value="story">Story / photo</option><option value="note">Note</option></select></label>
-          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.message">Message (140)</span><textarea id="card-text-input" maxlength="140" rows="3" placeholder="Deep shade along the colonnade; benches free." style="width:100%;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;font-size:15px;margin-top:4px;"></textarea></label>
-          <label style="font-size:13px;font-weight:700;"><span data-i18n="card.photo">Photo (optional)</span><input type="file" id="card-photo-input" accept="image/*" style="display:block;margin-top:4px;font-size:13px;" /></label>
-          <img id="card-photo-preview" alt="" style="display:none;max-width:100%;border:2px solid var(--ink);margin-top:4px;" />
-          <div class="ticket-card" style="font-size:13px;"><span data-i18n="card.pinnedAt">Pinned at</span> <strong id="card-coords-label">map centre</strong> · <span>🌿 Shade here now · <strong id="card-shade-stamp">82%</strong></span></div>
-          <button type="submit" id="btn-post-card" class="btn btn-primary" style="justify-content:center;"><span data-i18n="card.pin">Pin card</span></button>
+          <button type="submit" id="btn-submit-registration" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:6px;">
+            <span>Register &amp; Embark (+10 🌱 Grass Points)</span>
+          </button>
         </form>
       </div>
     </div>
-  </div>
 
-  <div id="feed-modal" class="modal-overlay hidden" role="dialog" aria-label="Hike feed">
-    <div class="modal-box">
-      <button class="modal-close" id="close-feed-modal">×</button>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="feed.title">🌱 Hike feed</h3>
-      <p style="font-size:13px;margin:4px 0 10px;" data-i18n="feed.sub">Announce a hike or join one. Finishers earn grass points.</p>
-      <div class="ticket-card">
-        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;" data-i18n="feed.announce">ANNOUNCE THIS TRIP</div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <input type="text" id="feed-title-input" maxlength="80" data-i18n-ph="feed.titlePh" placeholder="Sunset hike to the lake…" style="flex:1;background:var(--kash);border:2px solid var(--ink);color:var(--ink);padding:10px;min-height:48px;font-size:15px;" />
-          <button id="feed-publish-btn" class="btn btn-primary" style="padding:10px 14px;" data-i18n="feed.post">Post</button>
+    <!-- Position Locked Warning Modal -->
+    <div id="position-locked-modal" class="modal-overlay hidden" role="dialog" aria-label="Position Locked Warning">
+      <div class="modal-box modal-celebrate" style="max-width:440px;text-align:center;">
+        <button class="modal-close" id="close-position-locked-modal">×</button>
+        <div style="font-size:40px;margin-bottom:6px;">🔒</div>
+        <h3 style="font-family:var(--font-display);font-size:20px;font-weight:900;">Position-Locked Story Card</h3>
+        <p id="pos-lock-desc" style="font-size:13.5px;color:var(--muted);margin:10px 0 14px;line-height:1.5;">
+          You must physically reach within 50 meters of this position to unlock this story card!
+        </p>
+        <div style="background:var(--paper-deep);padding:10px 14px;border:1.5px solid var(--ink);border-radius:6px;font-family:var(--font-mono);font-size:12px;text-align:left;margin-bottom:14px;">
+          <div>📍 Your Location: <span id="pos-lock-user-coords">-</span></div>
+          <div>📌 Postcard Spot: <span id="pos-lock-card-coords">-</span></div>
+          <div style="margin-top:4px;">📏 Distance Away: <strong id="pos-lock-dist-text" style="color:var(--terracotta);">-</strong></div>
+          <div style="margin-top:6px;color:var(--shade);font-weight:700;">Status: Locked until you arrive at this spot.</div>
         </div>
+        <button id="btn-close-pos-lock" class="btn btn-primary" style="width:100%;justify-content:center;">
+          <span>Understood — Walk Closer on Trail</span>
+        </button>
       </div>
-      <div id="feed-list" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-  </div>
 
-  <div id="qr-modal" class="modal-overlay hidden" role="dialog" aria-label="Trip QR">    <div class="modal-box" style="text-align:center;">
-      <button class="modal-close" id="close-qr-modal">×</button>
-      <h3 style="font-family:var(--font-display);font-size:22px;font-weight:900;" data-i18n="qr.title">🎫 Trip ticket</h3>
-      <p style="font-size:13px;margin-bottom:10px;" data-i18n="qr.sub">Scan to join this trip or read its public cards.</p>
-      <div class="ticket-card" style="display:inline-block;"><img id="qr-image" src="" alt="Trip QR code" style="width:200px;height:200px;display:block;background:#fff;" /></div>
-      <div style="font-family:var(--font-mono);font-size:12px;margin:10px 0;">/t/<span id="qr-url-text">dadu-clinic</span></div>
-      <button id="copy-qr-link-btn" class="btn btn-primary" style="width:100%;justify-content:center;"><span data-i18n="qr.copy">Copy trip link</span></button>
-    </div>
-  </div>
+  </div> <!-- End #app-container -->
 
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="/static/app.js?v=5"></script>
+  <script src="/static/app.js?v=6"></script>
 </body>
 </html>

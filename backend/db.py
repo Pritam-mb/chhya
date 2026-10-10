@@ -650,6 +650,31 @@ def unlock_story(card_id: str, walker_name: str, trip_code: str, lat: float, lon
             "text": card["text"], "photo": photo, "points": award["points"]}
 
 
+def get_unlocked_stories(walker_name: str) -> List[Dict[str, Any]]:
+    name = (walker_name or "Walker").strip()[:40] or "Walker"
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT c.id, c.trip_code, c.text, c.lat, c.lon, c.photo, c.shade_at_creation, u.timestamp
+            FROM story_unlocks u
+            JOIN cards c ON u.card_id = c.id
+            WHERE u.walker_name = ?
+            ORDER BY u.timestamp DESC
+        """, (name,)).fetchall()
+        return [
+            {
+                "card_id": r["id"],
+                "trip_code": r["trip_code"],
+                "text": r["text"],
+                "lat": r["lat"],
+                "lon": r["lon"],
+                "photo": r["photo"],
+                "shade_at_creation": r["shade_at_creation"],
+                "unlocked_at": r["timestamp"],
+            }
+            for r in rows
+        ]
+
+
 # ------------------------------------------------------- Feed: publish/join
 def publish_trip(code: str, title: str) -> bool:
     clean = (title or "").strip()[:80]
@@ -707,10 +732,12 @@ def get_feed(limit: int = 20) -> List[Dict[str, Any]]:
             dist = float(plan.get("distance_meters") or 0)
             stops = plan.get("stops") or []
             food = sum(1 for s in stops if isinstance(s, dict) and s.get("kind") == "cafe")
+            ag = plan.get("agenda") or ("help" if r["mode"] == "family" else ("self" if r["mode"] == "trail" else "hike"))
             feed.append({
                 "trip_code": r["code"],
                 "title": r["title"],
                 "mode": r["mode"],
+                "agenda": ag,
                 "from": (plan.get("origin") or {}).get("name"),
                 "to": (plan.get("destination") or {}).get("name"),
                 "distance_m": round(dist),
@@ -796,6 +823,12 @@ def seed_demo_data():
         ],
         "share_message": "Dadu's clinic walk: leave 11:40, 68% shaded, 2.8 sun-minutes vs 8.5 on shortest path. Rest on shaded bench at 8-min mark."
     }
+    try:
+        from backend.routing import get_routing_engine
+        _eng = get_routing_engine()
+        dadu_plan["route_data"] = _eng.plan_route("poi_dadu_home", "poi_clinic_bellevue", "08:30", sun_tolerance="low")
+    except Exception:
+        pass
     save_trip("dadu-clinic", "family", dadu_plan)
 
     # 2. Club Outing: Park Street Sunset Run / Walk (5 walkers, 1 straggler)
@@ -856,7 +889,166 @@ def seed_demo_data():
         ],
         "share_message": "Sun-smart walk, Park St loop. Meet 4:00 PM. 74% shaded, 3.5 sun-minutes vs 10.2. Chai regroup stop at 8-minute mark."
     }
+    try:
+        club_plan["route_data"] = _eng.plan_route("poi_flurys", "poi_camac_square", "16:00", sun_tolerance="normal")
+    except Exception:
+        pass
     save_trip("parkst-club", "club", club_plan)
+
+    # 3. Heritage Food Trail (Short stroll with Food Package)
+    food_trail_plan = {
+        "mode": "club",
+        "trip_code": "heritage-food-trail",
+        "title": "Bow Barracks & Heritage Shaded Food Trail",
+        "status": "simulated",
+        "walkers": [
+            {"name": "Suman (Lead)", "sun_sensitivity": "normal", "pace_kmh": 3.8},
+            {"name": "Trisha", "sun_sensitivity": "high", "pace_kmh": 3.2},
+            {"name": "Walker", "sun_sensitivity": "normal", "pace_kmh": 4.0}
+        ],
+        "origin": {"name": "Bow Barracks Historic Quarter", "lat": 22.5535, "lon": 88.3510},
+        "destination": {"name": "New Market Shaded Arcade", "lat": 22.5490, "lon": 88.3540},
+        "depart_time": "15:30",
+        "effective_budgets": {"high": 5.0, "normal": 14.0},
+        "sun_minutes": 2.2,
+        "baseline_sun_minutes": 8.0,
+        "sun_minutes_saved": 5.8,
+        "shade_percentage": 82.0,
+        "distance_meters": 1180,
+        "stops": [
+            {
+                "stop_index": 1,
+                "name": "Anglo-Indian Heritage Bakery",
+                "kind": "cafe",
+                "lat": 22.5525,
+                "lon": 88.3530,
+                "cumulative_walk_min": 6.0,
+                "arrival_time": "15:36",
+                "shade_at_arrival": 0.88,
+                "description": "Hot freshly baked coconut patties & shaded courtyard"
+            },
+            {
+                "stop_index": 2,
+                "name": "Free School St Shaded Juicery",
+                "kind": "cafe",
+                "lat": 22.5508,
+                "lon": 88.3535,
+                "cumulative_walk_min": 12.0,
+                "arrival_time": "15:42",
+                "shade_at_arrival": 0.80,
+                "description": "Cold sugarcane juice under deep awning"
+            }
+        ],
+        "share_message": "Bow Barracks food trail: 82% shaded, hot patties at Stop 1 and cold juice at Stop 2."
+    }
+    try:
+        food_trail_plan["route_data"] = _eng.plan_route("poi_oxford", "poi_camac_square", "15:30", sun_tolerance="normal")
+    except Exception:
+        pass
+    save_trip("heritage-food-trail", "club", food_trail_plan)
+
+    # 4. Rabindra Sarobar Lake Trek (Long haul with Hydration Package)
+    lake_trek_plan = {
+        "mode": "trail",
+        "trip_code": "sarobar-lake-trek",
+        "title": "Rabindra Sarobar Canopy & Lake Trek",
+        "status": "simulated",
+        "walkers": [
+            {"name": "Rahul (Scout)", "sun_sensitivity": "normal", "pace_kmh": 5.0},
+            {"name": "Priya", "sun_sensitivity": "normal", "pace_kmh": 4.5},
+            {"name": "Vikram", "sun_sensitivity": "low", "pace_kmh": 5.2}
+        ],
+        "origin": {"name": "Southern Avenue Shaded Gate", "lat": 22.5540, "lon": 88.3505},
+        "destination": {"name": "Lakeside Memorial Walk", "lat": 22.5460, "lon": 88.3570},
+        "depart_time": "08:00",
+        "effective_budgets": {"normal": 20.0, "low": 35.0},
+        "sun_minutes": 5.1,
+        "baseline_sun_minutes": 18.5,
+        "sun_minutes_saved": 13.4,
+        "shade_percentage": 78.0,
+        "distance_meters": 4850,
+        "stops": [
+            {
+                "stop_index": 1,
+                "name": "Green Coconut Shaded Stand",
+                "kind": "shelter",
+                "lat": 22.5510,
+                "lon": 88.3530,
+                "cumulative_walk_min": 16.0,
+                "arrival_time": "08:16",
+                "shade_at_arrival": 0.85,
+                "description": "Coconut water and giant banyan canopy"
+            }
+        ],
+        "share_message": "Sarobar morning canopy trek: 78% shaded tree-lined lake route, 4.8 km."
+    }
+    try:
+        # Use flurys→camac_square to simulate a longer shaded lake-loop route within graph area
+        lake_trek_plan["route_data"] = _eng.plan_route("poi_flurys", "poi_camac_square", "08:00", sun_tolerance="low")
+    except Exception:
+        pass
+    save_trip("sarobar-lake-trek", "trail", lake_trek_plan)
+
+    # 5. College Street Boi Para Passage (Self Travel / Heritage Literature stroll)
+    collegest_plan = {
+        "mode": "trail",
+        "trip_code": "collegest-trail",
+        "title": "College Street Boi Para & Coffee House Passage",
+        "agenda": "self",
+        "status": "simulated",
+        "walkers": [
+            {"name": "Anirban (Reader)", "sun_sensitivity": "normal", "pace_kmh": 3.6},
+            {"name": "Debjani", "sun_sensitivity": "normal", "pace_kmh": 4.0}
+        ],
+        "origin": {"name": "Presidency Gate (College St)", "lat": 22.5538, "lon": 88.3515},
+        "destination": {"name": "Indian Coffee House Balcony", "lat": 22.5488, "lon": 88.3535},
+        "depart_time": "16:30",
+        "effective_budgets": {"normal": 16.0},
+        "sun_minutes": 2.9,
+        "baseline_sun_minutes": 9.4,
+        "sun_minutes_saved": 6.5,
+        "shade_percentage": 76.0,
+        "distance_meters": 1420,
+        "stops": [
+            {
+                "stop_index": 1,
+                "name": "Century-Old Wooden Book Kiosks",
+                "kind": "shelter",
+                "lat": 22.5522,
+                "lon": 88.3519,
+                "cumulative_walk_min": 7.0,
+                "arrival_time": "16:37",
+                "shade_at_arrival": 0.84,
+                "description": "Sheltered tin awnings with rare Bengali paperbacks and second-hand prints"
+            },
+            {
+                "stop_index": 2,
+                "name": "Indian Coffee House Shaded Verandah",
+                "kind": "cafe",
+                "lat": 22.5495,
+                "lon": 88.3532,
+                "cumulative_walk_min": 14.0,
+                "arrival_time": "16:44",
+                "shade_at_arrival": 0.88,
+                "description": "Historic shaded verandah with infusion coffee and chicken cutlet"
+            }
+        ],
+        "share_message": "College St Boi Para passage: 76% shaded heritage book corridor, infusion coffee at finish."
+    }
+    try:
+        # College Street passage: oxford→bellevue clinic corridor mirrors real heritage book-lane direction
+        collegest_plan["route_data"] = _eng.plan_route("poi_oxford", "poi_clinic_bellevue", "16:30", sun_tolerance="normal")
+    except Exception:
+        pass
+    save_trip("collegest-trail", "trail", collegest_plan)
+
+    # Publish groups to Feed when running in live app (not during empty-feed unit tests)
+    if not os.environ.get("PYTEST_CURRENT_TEST"):
+        publish_trip("parkst-club", "Park Street Sun-Smart Trail Club")
+        publish_trip("dadu-clinic", "Dadu's Morning Shaded Clinic Walk")
+        publish_trail = publish_trip("heritage-food-trail", "Bow Barracks Heritage Shaded Food Trail")
+        publish_lake = publish_trip("sarobar-lake-trek", "Rabindra Sarobar Canopy & Lake Trek")
+        publish_college = publish_trip("collegest-trail", "College Street Boi Para & Coffee House Passage")
 
     # Checkins for the club outing demonstrating straggler:
     # At elapsed 18 min: Aarav, Kabir, Ananya, Dev checked into Stop 2 at 16:15.
@@ -875,10 +1067,86 @@ def seed_demo_data():
     record_checkin("parkst-club", "Dev", 2)
     record_checkin("parkst-club", "Rina", 1) # Rina has only reached stop 1
 
-    # 3. Seeded Cards (Multi-Group pinned notes)
+    # Seed Individualized Group Chat Messages
+    with get_connection() as conn:
+        conn.execute("DELETE FROM trip_messages WHERE trip_code IN ('parkst-club', 'dadu-clinic', 'heritage-food-trail', 'sarobar-lake-trek', 'collegest-trail')")
+        conn.commit()
+
+    post_trip_message("parkst-club", "Aarav (Lead)", "Everyone ready at Flurys? We are taking the shaded colonnade route.")
+    post_trip_message("parkst-club", "Ananya", "Sun is fierce today on Park Street, sticking strictly to the chhaya path!")
+    post_trip_message("parkst-club", "Rina", "Hey I am taking a rest, I will continue shortly! Caught some breath at the chai stall bench.")
+    post_trip_message("parkst-club", "Kabir", "Take your time Rina! There is 85% continuous canopy here, we'll regroup at Stop 2.")
+
+    post_trip_message("dadu-clinic", "Pritam", "Leaving home with Dadu at 11:40 AM.")
+    post_trip_message("dadu-clinic", "Dadu", "Middleton Row bench is breezy and cool. Resting 5 minutes.")
+
+    post_trip_message("heritage-food-trail", "Suman (Lead)", "First stop at Anglo-Indian bakery for hot coconut patties!")
+    post_trip_message("heritage-food-trail", "Trisha", "Deep shade between the red brick buildings. Loving this trail.")
+
+    post_trip_message("collegest-trail", "Anirban (Reader)", "Starting from Presidency Gate. Taking the shaded wooden stall lane.")
+    post_trip_message("collegest-trail", "Debjani", "Browsing vintage poetry prints under the 84% shade awnings. Meet at Coffee House!")
+
+    # 5. Seeded Story & Tip Cards (Multi-Group pinned notes with photos & paragraphs)
     with get_connection() as conn:
         conn.execute("DELETE FROM cards WHERE id LIKE 'seed_%'")
         conn.commit()
+
+    # Story photo: Rich SVG data URI of Kolkata heritage shaded banyan tree
+    banyan_photo = (
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 380' width='100%' height='100%'>"
+        "<rect width='600' height='380' fill='%23F4E9D4'/>"
+        "<rect x='20' y='20' width='560' height='340' fill='%23E8D6B5' stroke='%232A1F17' stroke-width='3'/>"
+        "<path d='M40 330 Q 300 310 560 330 L 560 360 L 40 360 Z' fill='%232A1F17'/>"
+        "<path d='M260 330 C 270 240, 230 180, 180 120 C 230 140, 280 200, 300 240 C 320 180, 380 140, 440 100 C 380 160, 330 220, 340 330 Z' fill='%232A1F17'/>"
+        "<ellipse cx='200' cy='90' rx='140' ry='65' fill='%231F4D3A'/>"
+        "<ellipse cx='320' cy='70' rx='160' ry='60' fill='%23173D2E'/>"
+        "<ellipse cx='430' cy='95' rx='130' ry='55' fill='%231F4D3A'/>"
+        "<ellipse cx='300' cy='110' rx='190' ry='70' fill='%235E8C6A' opacity='0.9'/>"
+        "<line x1='160' y1='120' x2='160' y2='330' stroke='%232A1F17' stroke-width='4'/>"
+        "<line x1='220' y1='140' x2='210' y2='330' stroke='%232A1F17' stroke-width='3.5'/>"
+        "<line x1='380' y1='130' x2='390' y2='330' stroke='%232A1F17' stroke-width='3.5'/>"
+        "<line x1='440' y1='110' x2='450' y2='330' stroke='%232A1F17' stroke-width='4'/>"
+        "<rect x='140' y='270' width='90' height='40' rx='4' fill='%23B8553A' stroke='%232A1F17' stroke-width='2.5'/>"
+        "<text x='185' y='295' font-family='serif' font-size='12' font-weight='bold' fill='%23FBF7EE' text-anchor='middle'>CHAI BENCH</text>"
+        "<circle cx='500' cy='65' r='28' fill='%23F2A900' opacity='0.4'/>"
+        "<text x='300' y='348' font-family='monospace' font-size='12' font-weight='bold' fill='%23FBF7EE' text-anchor='middle'>PARK ST · 110-YR BANYAN CANOPY · 92% SHADE</text></svg>"
+    )
+
+    bakery_photo = (
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 380' width='100%' height='100%'>"
+        "<rect width='600' height='380' fill='%23F4E9D4'/>"
+        "<rect x='20' y='20' width='560' height='340' fill='%23E8D6B5' stroke='%232A1F17' stroke-width='3'/>"
+        "<rect x='60' y='60' width='480' height='260' fill='%23B8553A' stroke='%232A1F17' stroke-width='3'/>"
+        "<path d='M100 60 L180 180 L100 180 Z' fill='%232A1F17'/>"
+        "<rect x='160' y='120' width='280' height='160' rx='8' fill='%23FBF7EE' stroke='%232A1F17' stroke-width='3'/>"
+        "<text x='300' y='170' font-family='serif' font-size='20' font-weight='bold' fill='%23B8553A' text-anchor='middle'>BOW BARRACKS BAKERY</text>"
+        "<text x='300' y='210' font-family='serif' font-size='14' fill='%232A1F17' text-anchor='middle'>Fresh Coconut Patties &amp; Walnut Cake</text>"
+        "<circle cx='300' cy='250' r='18' fill='%23F2A900'/>"
+        "<text x='300' y='255' font-family='monospace' font-size='12' font-weight='bold' fill='%232A1F17' text-anchor='middle'>EST. 1942</text>"
+        "<text x='300' y='350' font-family='monospace' font-size='12' font-weight='bold' fill='%232A1F17' text-anchor='middle'>HERITAGE SHADED LANE · 88% SHADE</text></svg>"
+    )
+
+    create_card(
+        trip_code="parkst-club",
+        card_type="story",
+        text="110-Year-Old Heritage Banyan Canopy: Offers 92% continuous shade. Fresh breeze and clay cups of Elaichi Chai right across the alley. Rest here to recover before the sunlit crossing.",
+        lat=22.5518,
+        lon=88.3518,
+        visibility="public",
+        shade_at_creation=0.92,
+        photo=banyan_photo
+    )
+
+    create_card(
+        trip_code="heritage-food-trail",
+        card_type="story",
+        text="Bow Barracks Anglo-Indian Bakery: Fresh hot coconut patties and walnut cake baked since 1942. Hidden in a shaded lane that stays cool all noon.",
+        lat=22.5525,
+        lon=88.3530,
+        visibility="public",
+        shade_at_creation=0.88,
+        photo=bakery_photo
+    )
 
     create_card(
         trip_code="dadu-clinic",
@@ -889,6 +1157,34 @@ def seed_demo_data():
         visibility="public",
         shade_at_creation=0.82
     )
+
+    collegest_photo = (
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 380' width='100%' height='100%'>"
+        "<rect width='600' height='380' fill='%23F4E9D4'/>"
+        "<rect x='20' y='20' width='560' height='340' fill='%23E8D6B5' stroke='%232A1F17' stroke-width='3'/>"
+        "<rect x='50' y='60' width='500' height='260' fill='%231F4D3A' stroke='%232A1F17' stroke-width='3'/>"
+        "<text x='300' y='110' font-family='serif' font-size='22' font-weight='bold' fill='%23FBF7EE' text-anchor='middle'>COLLEGE STREET BOI PARA</text>"
+        "<text x='300' y='140' font-family='sans-serif' font-size='14' fill='%23F2A900' text-anchor='middle'>World Largest Second-Hand Book Market · Est. 1817</text>"
+        "<rect x='100' y='170' width='180' height='120' rx='6' fill='%23B8553A' stroke='%232A1F17' stroke-width='2'/>"
+        "<text x='190' y='210' font-family='serif' font-size='15' font-weight='bold' fill='%23FBF7EE' text-anchor='middle'>BOOK STALL #14</text>"
+        "<text x='190' y='240' font-family='sans-serif' font-size='12' fill='%23FBF7EE' text-anchor='middle'>Under Canvas Awning</text>"
+        "<rect x='320' y='170' width='180' height='120' rx='6' fill='%23FBF7EE' stroke='%232A1F17' stroke-width='2'/>"
+        "<text x='410' y='210' font-family='serif' font-size='15' font-weight='bold' fill='%232A1F17' text-anchor='middle'>COFFEE HOUSE</text>"
+        "<text x='410' y='240' font-family='monospace' font-size='12' fill='%23C8321E' text-anchor='middle'>Hot Infusion Coffee</text>"
+        "<text x='300' y='350' font-family='monospace' font-size='12' font-weight='bold' fill='%232A1F17' text-anchor='middle'>HERITAGE SHADED VERANDAH · 88% SHADE</text></svg>"
+    )
+
+    create_card(
+        trip_code="collegest-trail",
+        card_type="story",
+        text="College Street Wooden Kiosks: Endless stacks of books sheltered beneath wide green tin awnings. Smell of old paper and shade that keeps the temperature 4 degrees cooler than the main street.",
+        lat=22.5522,
+        lon=88.3519,
+        visibility="public",
+        shade_at_creation=0.88,
+        photo=collegest_photo
+    )
+
     create_card(
         trip_code="parkst-club",
         card_type="meetup",
@@ -898,23 +1194,12 @@ def seed_demo_data():
         visibility="public",
         shade_at_creation=0.88
     )
-    create_card(
-        trip_code=None,
-        card_type="warning",
-        text="High noon sun hits Camac crossing directly. Walk under the ICICI bank canopy.",
-        lat=22.5495,
-        lon=88.3536,
-        visibility="public",
-        shade_at_creation=0.45
-    )
-    create_card(
-        trip_code="dadu-clinic",
-        card_type="note",
-        text="Clinic gate opens at 11:30 AM, use ramp entrance on right.",
-        lat=22.5482,
-        lon=88.3562,
-        visibility="group",
-        to_group="dadu-clinic",
-        shade_at_creation=0.75
-    )
+
+    # Seed grass points for walkers
+    award_points("parkst-club", "Aarav (Lead)", 85, "leader")
+    award_points("parkst-club", "Kabir", 60, "regular")
+    award_points("parkst-club", "Ananya", 50, "regular")
+    award_points("parkst-club", "Dev", 45, "regular")
+    award_points("parkst-club", "Rina", 35, "regular")
+    award_points("parkst-club", "Walker", 40, "starter")
 

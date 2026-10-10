@@ -357,6 +357,10 @@ class RoutingEngine:
                 f"the shade route matches the shortest path with {shade_stats['sun_minutes']:.1f} sun-minutes.{noon_note}"
             )
             
+        # Generate turn-by-turn directions along shade route
+        directions = self._generate_directions(shade_segments, orig_name, dest_name)
+        shade_stats["directions"] = directions
+
         return {
             "origin": {"name": orig_name, "lon": orig_lon, "lat": orig_lat},
             "destination": {"name": dest_name, "lon": dest_lon, "lat": dest_lat},
@@ -371,6 +375,7 @@ class RoutingEngine:
             },
             "shade_route": shade_stats,
             "shortest_route": shortest_stats,
+            "directions": directions,
             "comparison": {
                 "extra_distance_m": extra_dist_m,
                 "extra_time_mins": extra_time_mins,
@@ -379,6 +384,87 @@ class RoutingEngine:
             },
             "trade_off_sentence": trade_off_sentence
         }
+
+    def _generate_directions(self, segments: List[Dict[str, Any]], orig_name: str, dest_name: str) -> List[Dict[str, Any]]:
+        if not segments:
+            return []
+
+        steps = []
+        # Step 1: Start at Origin
+        first_coords = segments[0]["coordinates"][0] if segments[0].get("coordinates") else None
+        steps.append({
+            "step": 1,
+            "type": "start",
+            "instruction": f"Depart from {orig_name}",
+            "distance_m": 0,
+            "shade_pct": 100 if segments[0]["is_shaded"] else 25,
+            "is_shaded": segments[0]["is_shaded"],
+            "street": segments[0].get("name") or "Origin Passage",
+            "coords": first_coords
+        })
+
+        current_street = None
+        accum_dist = 0.0
+        accum_sun = 0.0
+        seg_coords = None
+
+        for s in segments:
+            st_name = s.get("name") or "Shaded Arcade"
+            if current_street is None:
+                current_street = st_name
+                accum_dist = s["length_m"]
+                accum_sun = s["length_m"] * s.get("exposure", 0.5)
+                seg_coords = s["coordinates"][0] if s.get("coordinates") else None
+            elif st_name == current_street:
+                accum_dist += s["length_m"]
+                accum_sun += s["length_m"] * s.get("exposure", 0.5)
+            else:
+                shade_pct = max(0, min(100, int((1.0 - (accum_sun / max(accum_dist, 1.0))) * 100)))
+                verb = "Turn onto" if len(steps) > 1 else "Walk along"
+                hint = f" ({shade_pct}% shade)" if shade_pct >= 60 else f" ({100-shade_pct}% exposed)"
+                steps.append({
+                    "step": len(steps) + 1,
+                    "type": "turn",
+                    "instruction": f"{verb} {current_street} for {round(accum_dist)}m{hint}",
+                    "distance_m": round(accum_dist, 1),
+                    "shade_pct": shade_pct,
+                    "is_shaded": (shade_pct >= 60),
+                    "street": current_street,
+                    "coords": seg_coords
+                })
+                current_street = st_name
+                accum_dist = s["length_m"]
+                accum_sun = s["length_m"] * s.get("exposure", 0.5)
+                seg_coords = s["coordinates"][0] if s.get("coordinates") else None
+
+        if current_street and accum_dist > 0:
+            shade_pct = max(0, min(100, int((1.0 - (accum_sun / max(accum_dist, 1.0))) * 100)))
+            hint = f" ({shade_pct}% shade)" if shade_pct >= 60 else f" ({100-shade_pct}% exposed)"
+            steps.append({
+                "step": len(steps) + 1,
+                "type": "walk",
+                "instruction": f"Continue along {current_street} for {round(accum_dist)}m{hint}",
+                "distance_m": round(accum_dist, 1),
+                "shade_pct": shade_pct,
+                "is_shaded": (shade_pct >= 60),
+                "street": current_street,
+                "coords": seg_coords
+            })
+
+        # Final Arrival Step
+        last_coords = segments[-1]["coordinates"][-1] if segments[-1].get("coordinates") else None
+        steps.append({
+            "step": len(steps) + 1,
+            "type": "finish",
+            "instruction": f"Arrive at {dest_name}",
+            "distance_m": 0,
+            "shade_pct": 100,
+            "is_shaded": True,
+            "street": dest_name,
+            "coords": last_coords
+        })
+
+        return steps
 
 
 _routing_instance: Optional[RoutingEngine] = None

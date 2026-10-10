@@ -52,6 +52,7 @@ from backend.db import (
     find_nearby_cards,
     report_and_hide_card,
     generate_trip_qr_base64,
+    get_unlocked_stories,
 )
 
 app = FastAPI(
@@ -432,9 +433,11 @@ def api_get_chat(code: str, since_id: int = Query(0), limit: int = Query(50)):
 
 
 class PositionRequest(BaseModel):
-    walker: str
+    walker: Optional[str] = None
+    walker_name: Optional[str] = None
     lat: float
     lon: float
+    distance_along_route_m: Optional[float] = None
 
 
 class PublishRequest(BaseModel):
@@ -457,7 +460,8 @@ def api_post_position(code: str, req: PositionRequest):
     """Opt-in live spot sharing for the group dashboard."""
     if get_trip(code) is None:
         raise HTTPException(status_code=404, detail="Trip not found.")
-    return upsert_position(code, req.walker, req.lat, req.lon)
+    w_name = req.walker or req.walker_name or "Walker"
+    return upsert_position(code, w_name, req.lat, req.lon)
 
 
 @app.get("/api/trip/{code}/positions")
@@ -505,10 +509,160 @@ def api_publish_trip(code: str, req: PublishRequest):
     return {"trip_code": code, "published": True, "title": req.title.strip()[:80]}
 
 
+@app.get("/api/routes/fixed")
+def api_get_fixed_routes():
+    """
+    Returns the 5 fixed curated Kolkata shade routes across agendas (hike, help, self travel).
+    """
+    return {
+        "routes": [
+            {
+                "id": "parkst-club",
+                "title": "Park Street Sun-Smart Heritage Trail",
+                "agenda": "hike",
+                "agenda_label": "Group Hike",
+                "mode": "club",
+                "origin": "Flurys Tea Room",
+                "destination": "Camac Street Mall & Offices",
+                "distance_m": 1200,
+                "category": "Medium trek (1.2 km)",
+                "shade_percentage": 74.0,
+                "sun_minutes": 3.5,
+                "package": "Carry Water / Light Pack",
+                "package_type": "water",
+                "walkers_count": 5,
+                "description": "Tree-lined colonnades and wide shaded footpaths along Park Street with tea stall regroup halts."
+            },
+            {
+                "id": "dadu-clinic",
+                "title": "Dadu's Morning Shaded Clinic Companion Walk",
+                "agenda": "help",
+                "agenda_label": "Help Companion",
+                "mode": "family",
+                "origin": "Dadu's Residence (Middleton Row)",
+                "destination": "Belle Vue Clinic",
+                "distance_m": 900,
+                "category": "Short stroll (0.9 km)",
+                "shade_percentage": 82.0,
+                "sun_minutes": 2.8,
+                "package": "Medical / Maximum Shade & Frequent Benches",
+                "package_type": "help",
+                "walkers_count": 2,
+                "description": "Gentle elderly-friendly walk under deep colonial porticos with rest bench every 8 minutes."
+            },
+            {
+                "id": "heritage-food-trail",
+                "title": "Bow Barracks Anglo-Indian Shaded Food Trail",
+                "agenda": "hike",
+                "agenda_label": "Group Hike",
+                "mode": "club",
+                "origin": "Bow Barracks Historic Quarter",
+                "destination": "New Market Shaded Arcade",
+                "distance_m": 1180,
+                "category": "Medium trek (1.2 km)",
+                "shade_percentage": 82.0,
+                "sun_minutes": 2.2,
+                "package": "Complete Food & Chai Package",
+                "package_type": "food",
+                "walkers_count": 3,
+                "description": "Historic shaded red brick alleyway with fresh coconut patties, walnut cakes, and chilled juicery."
+            },
+            {
+                "id": "sarobar-lake-trek",
+                "title": "Rabindra Sarobar Canopy & Lake Trek",
+                "agenda": "self",
+                "agenda_label": "Self Travel",
+                "mode": "trail",
+                "origin": "Southern Avenue Shaded Gate",
+                "destination": "Lakeside Memorial Walk",
+                "distance_m": 4850,
+                "category": "Long expedition (4.8 km)",
+                "shade_percentage": 78.0,
+                "sun_minutes": 5.1,
+                "package": "Carry Water / Nature Trek",
+                "package_type": "water",
+                "walkers_count": 3,
+                "description": "Tranquil morning nature trek beneath towering mahogany and banyan trees along the lake boundary."
+            },
+            {
+                "id": "collegest-trail",
+                "title": "College Street Boi Para & Coffee House Passage",
+                "agenda": "self",
+                "agenda_label": "Self Travel",
+                "mode": "trail",
+                "origin": "Presidency Gate (College St)",
+                "destination": "Indian Coffee House Balcony",
+                "distance_m": 1420,
+                "category": "Medium trek (1.4 km)",
+                "shade_percentage": 76.0,
+                "sun_minutes": 2.9,
+                "package": "Coffee & Heritage Book Stroll",
+                "package_type": "food",
+                "walkers_count": 2,
+                "description": "Walk among the historic wooden second-hand book kiosks under continuous awnings to Coffee House."
+            }
+        ]
+    }
+
+
 @app.get("/api/feed")
 def api_feed(limit: int = Query(20)):
     """Joinable public trips with distance category and food package."""
     return {"trips": get_feed(min(limit, 50))}
+
+
+class FeedCreateRequest(BaseModel):
+    title: str
+    origin: str
+    destination: str
+    walker: Optional[str] = "Walker"
+    mode: Optional[str] = "trail"
+    depart_time: Optional[str] = "15:00"
+    sun_tolerance: Optional[str] = "normal"
+    package: Optional[str] = "food"
+
+
+@app.post("/api/feed/create")
+def api_create_feed_hike(req: FeedCreateRequest):
+    """
+    Announce a new group hike directly from the Feed:
+    Computes route shade-wise, packages stops, publishes to feed, awards host Grass Points.
+    """
+    try:
+        constraints = {
+            "mode": req.mode or "trail",
+            "start_window": {
+                "date": datetime.date.today().isoformat(),
+                "earliest": req.depart_time or "15:00",
+                "latest": "16:00",
+            },
+            "walkers": [{"name": req.walker or "Walker", "sun_sensitivity": req.sun_tolerance or "normal", "pace": "normal"}],
+            "destinations": [{"text": req.destination}],
+            "origin": req.origin,
+        }
+        plan = build_trip_plan(
+            parsed_constraints=constraints,
+            user_origin_override=req.origin,
+            user_destination_override=req.destination,
+            user_mode_override=req.mode,
+        )
+        code = plan.get("trip_code")
+        if req.package == "food" and plan.get("stops"):
+            for s in plan["stops"]:
+                s["kind"] = "cafe"
+            save_trip(code, req.mode or "trail", plan)
+        publish_trip(code, req.title)
+        award_points(code, req.walker or "Walker", POINTS_JOIN, "hike-host")
+        post_trip_message(code, req.walker or "Walker", f"Created hike group: {req.title}. Route set shade-wise!", is_system=True)
+        return {"trip_code": code, "published": True, "title": req.title, "plan": plan}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/stories/unlocked")
+def api_get_unlocked_stories(walker: str = Query("Walker")):
+    """Get the persistent journal of all trail stories unlocked by this walker."""
+    return {"stories": get_unlocked_stories(walker)}
 
 
 @app.post("/api/trip/{code}/join")
